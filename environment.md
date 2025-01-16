@@ -101,7 +101,7 @@ unfinished state that prevents mininet from being started again. In such
 situation you can clean up the network state by typing `sudo mn -c`, and try to
 start mininet after that.
 
-## Working over ssh from the host machine
+## Working over ssh from the host machine (UTM)
 
 **Optional:** When working with a virtual machine, it may be more convenient to
 use the tools and terminal available in the host machine, and access the virtual
@@ -129,6 +129,48 @@ Particularly, the popular development environment _VScode_ can connect to a
 remote host using ssh, in which case one can do development using the locally
 installed VScode in the host machine that actually operates on the files in the
 remote machine over a ssh connection.
+
+## Working over ssh from the host machine (Virtualbox)
+
+**Optional:** When working with a virtual machine, it may be more convenient to
+use the tools and terminal available in the host machine, and access the virtual
+machine using a ssh connection between the host and virtual machine. First, the
+virtual machine needs ssh server installed and started (sometimes this might
+have been done already with the initial installation of the Linux distribution):
+
+    sudo apt install openssh-server
+    sudo systemctl start ssh
+    sudo systemctl enable ssh
+
+Next, check if the virtual machine's firewall is enabled. 
+
+    sudo ufw status
+
+If the firewall is not active (i.e. the command responds with `Status: inactive`), you do not need to run the next command. If the command responds with `Status: active`, you need to enable ssh access with the command:
+
+    sudo ufw allow ssh
+
+Next, you need to set up port forwarding from your host machine to the virtual machine. In the Virtualbox window, select your virtual machine. Go to Settings -> Network -> Adapter 1 -> Advanced (arrow down) -> Port Forwarding. This should open a list of Port Forwarding Rules. Create a new rule with the plus icon and set the fields as following:
+
+| Field        | Value            |
+|--------------|------------------|
+| **Name**     | ssh              |
+| **Protocol** | TCP              |
+| **Host Port**| 2222             |
+| **Guest Port**| 22              |
+| **Host IP**  | (Leave blank)    |
+| **Guest IP** | (Leave blank)    |
+
+Your port forwarding rules should now look like this:
+
+![Port forwarding rules](images/virtualbox-port-forwarding.png "Port forwarding rules")
+
+
+Finally, you should be able to access your virtual machine from your host machine using ssh. To test it out, on your host machine, run the command:
+
+    ssh -p 2222 username@localhost
+
+Particularly, the popular development environment VScode can connect to a remote host using ssh, in which case one can do development using the locally installed VScode in the host machine that actually operates on the files in the remote machine over a ssh connection.
 
 ## Setting up the course exercise software
 
