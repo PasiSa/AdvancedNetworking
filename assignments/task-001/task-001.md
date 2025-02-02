@@ -33,7 +33,7 @@ You should repeat the assignment applying the following four scenarios:
    most challenging network scenario you can think of that can still complete
    the TCP connection, delivering the same amount of bytes as the previous
    scenarios? In addition to delay, bandwidth and loss rate, you can also limit
-   the packet queue size at the bottleneck link (argument `max_queue_size`).
+   the packet queue size at the bottleneck link (argument `queue`).
 
 Write a report that describes the following details. The report, and
 answers to the following questions need to be submitted
