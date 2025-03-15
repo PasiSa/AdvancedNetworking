@@ -166,7 +166,8 @@ table:
 
 In the `ns1` namespace, we will also need to configure the DNS server:
 
-    bash -c 'echo "nameserver 8.8.8.8" > /etc/netns/ns1/resolv.conf
+    mkdir -p /etc/netns/ns1
+    bash -c 'echo "nameserver 8.8.8.8" > /etc/netns/ns1/resolv.conf'
 
 At 8.8.8.8 there is a public DNS server maintained by Google. `resolv.conf` is
 the location where nameservers are configured in Linux. Different network
