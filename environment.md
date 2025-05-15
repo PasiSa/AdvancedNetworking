@@ -87,7 +87,7 @@ The script implements a simple topology with four nodes (titled "lh1", "lh2",
 propagation latency of 200 ms. Mininet command line interface opens, where you
 can run different programs in one of the emulated mininet nodes.
 
-![Simple topology](images/simple-topo.png "Simple topology")
+![Simple topology](/images/simple-topo.png "Simple topology")
 
 For example, typing `lh1 ping rh1` starts a ping tool at "lh1" (at IP address
 10.0.0.1) that sends ICMP echo requests to "rh1" (at IP address 10.0.0.3), that
@@ -163,7 +163,7 @@ Next, you need to set up port forwarding from your host machine to the virtual m
 
 Your port forwarding rules should now look like this:
 
-![Port forwarding rules](images/virtualbox-port-forwarding.png "Port forwarding rules")
+![Port forwarding rules](/images/virtualbox-port-forwarding.png "Port forwarding rules")
 
 
 Finally, you should be able to access your virtual machine from your host machine using ssh. To test it out, on your host machine, run the command:

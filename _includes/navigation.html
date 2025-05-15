@@ -1,0 +1,20 @@
+<nav>
+  {% for page in site.pages %}
+  	{% if page.title != nil %}
+  		{% assign display_name = page.title %}
+  	{% else %}
+	    {% if page.name == "index.md" %}
+	      {% assign parts = page.url | split: '/' %}
+	      {% assign index = parts.size | minus: 1 %}
+	      {% assign display_name = parts[index] %}
+	  	{% else %}
+	      {% assign parts = page.name | split: '.' %}
+	      {% assign display_name = parts[0] %}
+	    {% endif %}
+    {% endif %}
+
+	  <a href="{{ page.url }}">
+	    {{ display_name | capitalize }}<br>
+	  </a>
+	{% endfor %}
+</nav>

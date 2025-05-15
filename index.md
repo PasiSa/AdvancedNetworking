@@ -1,3 +1,7 @@
+---
+title: Home
+---
+
 # Advanced Networking course
 
 These pages contain the material and assignments for the hands-on programming

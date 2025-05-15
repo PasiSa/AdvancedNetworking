@@ -374,7 +374,7 @@ data structure, there maybe be empty padding spaces between the fields to force
 the larger number values at word boundaries in computer memory, to make their
 processing more efficient. Below picture illustrates the situation.
 
-![Data struct alignment](images/struct-alignment.png "Data struct alignment")
+![Data struct alignment](/images/struct-alignment.png "Data struct alignment")
 
 A simple, but inefficient, way to write such structure could be to do it field
 by field as separate write calls. However, both Rust and C have a way to tell the
@@ -394,7 +394,7 @@ functions separately for each field to translate them to network byte order and
 vice versa. As a reminder, TCP header is illustrated below (from **[RFC
 9293](https://datatracker.ietf.org/doc/html/rfc9293)**):
 
-![TCP header](images/tcp-header.png "TCP header")
+![TCP header](/images/tcp-header.png "TCP header")
 
 ## Socket buffers and flow control
 
@@ -407,7 +407,7 @@ beginning of the packet before it is sent. Currently most packets in the
 Internet are 1500 bytes long, this means that each TCP segment can include
 maximum of 1460 bytes of data, depending on options used in the header.
 
-![Sockets and buffers](images/buffers.png "Sockets and buffers")
+![Sockets and buffers](/images/buffers.png "Sockets and buffers")
 
 After TCP segment is sent, it is not yet removed from the send buffer, because
 it is possible that packet is lost in the network and TCP may need to retransmit
