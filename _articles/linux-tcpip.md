@@ -1,4 +1,6 @@
-# Linux Networking
+---
+title: Linux Networking
+---
 
 This is a short section that introduces some tools that may be useful for
 network experimentation.

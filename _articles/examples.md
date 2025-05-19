@@ -1,4 +1,6 @@
-# List of examples
+---
+title: List of examples
+---
 
 ## TCP in C
 

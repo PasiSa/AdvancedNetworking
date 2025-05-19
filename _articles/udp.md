@@ -1,4 +1,6 @@
-# UDP and datagram sockets
+---
+title: UDP and datagram sockets
+---
 
 Datagram sockets are typically used to send and receive UDP datagrams. They are
 connectionless, and need only minimal state in the operating system. The

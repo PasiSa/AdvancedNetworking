@@ -1,4 +1,6 @@
-# Server programming and concurrent connections
+---
+title: Server programming and concurrent connections
+---
 
 ## Active and passive sockets
 

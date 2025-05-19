@@ -1,4 +1,6 @@
-# Task 1: Simple client
+---
+title: "Task 1: Simple client"
+---
 
 In this assignment you will implement a TCP client that opens a TCP connection
 to the `adnet-agent` server assuming the `simple_topo` topology in our Mininet

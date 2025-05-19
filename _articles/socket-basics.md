@@ -1,4 +1,6 @@
-# Socket programming basics
+---
+title: Socket programming basics
+---
 
 Socket is the basic programming interface between user space applications and
 operating system. Commonly, socket encapsulates one communication session
