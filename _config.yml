@@ -26,22 +26,16 @@ description: >- # used by seo meta and the atom feed
 url: ""
 
 github:
-  username: github_username # change to your GitHub username
-
-twitter:
-  username: twitter_username # change to your Twitter username
+  username: PasiSa
 
 social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
-  name: your_full_name
-  email: example@domain.com # change to your email address
+  name: Pasi Sarolahti
+  email: pasi.sarolahti@aalto.fi
   links:
-    # The first element serves as the copyright owner's link
-    - https://twitter.com/username # change to your Twitter homepage
-    - https://github.com/username # change to your GitHub homepage
+    - https://github.com/PasiSa
     # Uncomment below to add more social links
-    # - https://www.facebook.com/username
     # - https://www.linkedin.com/in/username
 
 # Site Verification Settings
@@ -184,12 +178,19 @@ defaults:
       toc: true
       permalink: /:title/
   - scope:
-      path: "_articles/assignments"
+      path: "examples"
     values:
       layout: post
       comments: false
       toc: true
-      permalink: /assignments/:title/
+      permalink: /:path/
+  - scope:
+      path: "assignments"
+    values:
+      layout: post
+      comments: false
+      toc: true
+      permalink: /:path/
   - scope:
       path: _drafts
     values:

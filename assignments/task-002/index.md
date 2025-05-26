@@ -46,7 +46,7 @@ Follow these steps in your program:
 The diagram below illustrates the expected communication between your
 implementation and _adnet-agent_.
 
-![Communication](comms.png "Communication")
+![Communication](/assignments/task-002/comms.png "Communication")
 
 Execute your program and the _adnet-agent_ in the Mininet `simple_topo` topology. As
 in the previous assignment, _adnet-agent_ should run in host "_rh1_", and your

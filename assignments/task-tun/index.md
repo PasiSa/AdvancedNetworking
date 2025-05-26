@@ -17,7 +17,7 @@ multiplexing, but can use also other approach.
 
 Let's set up a simple network environment without Mininet this time on which we
 will deploy the tunnel. Set up a network namespace using the provided
-**[setup.sh](setup.sh)** script.
+**[setup.sh](/assignments/task-tun/setup.sh)** script.
 
 **Questions:**
 
@@ -48,7 +48,7 @@ this case you will also need to set the IP address and other interface
 parameters to the created TUN interface by other means, for example using the
 `ip` tool in command line shell.
 
-![Network setup in assignment](namespaces.png "Network setup in assignment")
+![Network setup in assignment](/assignments/task-tun/namespaces.png "Network setup in assignment")
 
 Note that you need to handle two input sources concurrently in your program: the
 UDP socket, and the TUN device end point. You can apply any of the approaches
