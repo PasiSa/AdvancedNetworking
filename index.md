@@ -1,7 +1,54 @@
 ---
-title: Home
 layout: home
 ---
+
+## Some Illustrations of the Syntax Highlighting
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+  int *ptr, i , n1, n2;
+  printf("Enter size: ");
+  scanf("%d", &n1);
+
+  ptr = (int*) malloc(n1 * sizeof(int));
+
+  printf("Addresses of previously allocated memory:\n");
+  for(i = 0; i < n1; ++i)
+    printf("%pc\n",ptr + i);
+
+  printf("\nEnter the new size: ");
+  scanf("%d", &n2);
+
+  // rellocating the memory
+  ptr = realloc(ptr, n2 * sizeof(int));
+
+  printf("Addresses of newly allocated memory:\n");
+  for(i = 0; i < n2; ++i)
+    printf("%pc\n", ptr + i);
+  
+  free(ptr);
+
+  return 0;
+}
+```
+
+```rust
+fn main() {
+    let rect1 = (30, 50);
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(rect1)
+    );
+}
+
+fn area(dimensions: (u32, u32)) -> u32 {
+    dimensions.0 * dimensions.1
+}
+```
 
 # Advanced Networking course
 
