@@ -179,6 +179,7 @@ defaults:
       permalink: /:title/
   - scope:
       path: "examples"
+      name: "README.md"
     values:
       layout: post
       comments: false
@@ -186,6 +187,7 @@ defaults:
       permalink: /:path/
   - scope:
       path: "assignments"
+      name: "README.md"
     values:
       layout: post
       comments: false
