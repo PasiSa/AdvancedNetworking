@@ -10,6 +10,12 @@
 
 /* append your custom style below */
 
+#sidebar .nav-link i {
+  width: 1em;
+  text-align: center;
+  display: inline-block;
+}
+
 #sidebar ul {
   margin-bottom: 0 !important;
 }

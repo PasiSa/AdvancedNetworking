@@ -1,6 +1,7 @@
 ---
-title: "Assignment: Experimenting with QUIC"
 ---
+
+# Assignment: Experimenting with QUIC
 
 In this assignment, we will try out one QUIC implementation and test it a little.
 We will use **[Quiche](https://github.com/cloudflare/quiche)**, an open-source

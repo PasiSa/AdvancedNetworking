@@ -1,6 +1,7 @@
 ---
-title: "Task 2: TCP server"
 ---
+
+# Task 2: TCP server
 
 In this assignment, you will implement a TCP server that gets incoming connection
 requests and should send a number of bytes as requested by the client.

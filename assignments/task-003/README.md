@@ -1,6 +1,7 @@
 ---
-title: "Task 3: Data transfer using UDP"
 ---
+
+# Task 3: Data transfer using UDP
 
 In this task you need to send largish amount of data using UDP protocol. Like
 previous assignments, your client starts by opening a connection to

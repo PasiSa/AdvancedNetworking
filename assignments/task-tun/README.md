@@ -1,6 +1,7 @@
 ---
-title: "Assignment: IP Tunnel"
 ---
+
+# Assignment: IP Tunnel
 
 In this assignment we will get familiar with the Linux TUN network device that
 can be used to implement IP tunnels between two end points, and play around with
