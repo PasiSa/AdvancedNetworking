@@ -49,7 +49,7 @@ stream, tcptrace time-sequence graph can be useful. It shows the progress of
 selected connection on time-sequence diagram. You can find it from the
 "Statistics" menu.
 
-![Statistics menu](/wireshark-stats-tcp.png "Statistics menu")
+![Statistics menu](/images/wireshark-stats-tcp.png "Statistics menu")
 
 The tcptrace shows the progression of TCP data segments, acknowledgments and
 size of receiver's advertised window over time. The distance between data packet
