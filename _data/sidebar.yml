@@ -4,16 +4,20 @@
   url: /
   icon: "fas fa-home"
 
+- title: About
+  url: /tabs/about/
+  icon: "fas fa-info-circle"
+
 - title: Settup Up
   url: /environment/
-  icon: "fas fa-stream"
+  icon: "fas fa-gear"
 
 - title: Wireshark
   url: /wireshark/
-  icon: "fas fa-stream"
+  icon: "fas fa-hat-wizard"
 
 - title: Sockets
-  icon: "fas fa-stream"
+  icon: "fas fa-angles-down"
   children:
     - title: Socket Basics
       url: /socket-basics/
@@ -24,15 +28,15 @@
 
 - title: Linux Networking
   url: /linux-tcpip/
-  icon: "fas fa-stream"
+  icon: "fas fa-network-wired"
 
 - title: Code Examples
   url: /examples/
-  icon: "fas fa-stream"
+  icon: "fas fa-code"
 
 - title: Assignments
   url: /assignments/
-  icon: "fas fa-tags"
+  icon: "fas fa-pen"
   children:
     - title: Simple Client
       url: /assignments/task-001/
@@ -44,7 +48,3 @@
       url: /assignments/task-quic/
     - title: IP Tunnel
       url: /assignments/task-tun/
-
-- title: About
-  url: /tabs/about/
-  icon: "fas fa-info-circle"
