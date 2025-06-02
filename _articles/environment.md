@@ -34,10 +34,8 @@ ARM-based version of Ubuntu 24.04 server, and then after booting the server
 installation, separately install Ubuntu desktop tools with `apt`, and then
 reboot again the virtual machine:
 
-```bash
-sudo apt install ubuntu-desktop
-sudo reboot
-```
+    sudo apt install ubuntu-desktop
+    sudo reboot
 
 Note, that the above is not needed, if you use UTM that provides a separate
 image in its gallery.
@@ -62,37 +60,29 @@ instructions.
 After getting your virtual machine up and running, you should update the Ubuntu
 packages and install a few other packages needed by the tools in this course:
 
-```bash
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt install git python-is-python3 help2man pip python3-pip net-tools
-sudo apt install telnet cgroup-tools cgroupfs-mount iputils-ping curl
-```
+    sudo apt-get update
+    sudo apt-get upgrade
+    sudo apt install git python-is-python3 help2man pip python3-pip net-tools
+    sudo apt install telnet cgroup-tools cgroupfs-mount iputils-ping curl
 
 Clone Mininet from git repository. On this course we use our own fork that has a
 few additional scripts and modifications compared to the original parent
 repository:
 
-```bash
-git clone https://github.com/PasiSa/mininet
-```
+    git clone https://github.com/PasiSa/mininet
 
 After this, install mininet, along with some additional network tools it needs:
 
-```bash
-mininet/util/install.sh -fw
-sudo apt-get install openvswitch-switch
-sudo service openvswitch-switch start
-cd mininet
-sudo make install
-```
+    mininet/util/install.sh -fw
+    sudo apt-get install openvswitch-switch
+    sudo service openvswitch-switch start
+    cd mininet
+    sudo make install
 
 Now Mininet should work. You can try it using one of our simple network
 scripts:
 
-```bash
-sudo aalto/simple_topo.py --delay=200ms
-```
+    sudo aalto/simple_topo.py --delay=200ms
 
 The script implements a simple topology with four nodes (titled "lh1", "lh2",
 "rh1" and "rh2"), two routers, connected with a bottleneck link that has one-way
@@ -121,27 +111,21 @@ machine using a ssh connection between the host and virtual machine. First, the
 virtual machine needs ssh server installed and started (sometimes this might
 have been done already with the initial installation of the Linux distribution):
 
-```bash
-sudo apt install openssh-server
-sudo systemctl start ssh
-sudo systemctl enable ssh
-```
+    sudo apt install openssh-server
+    sudo systemctl start ssh
+    sudo systemctl enable ssh
 
 After this you should find the IP addressed the virtual guest system uses
 internally. Type
 
-```bash
-ip addr show
-```
+    ip addr show
 
 and locate the IP address associated with a network interface. It should be an
 address in the private address space, for example starting with 10.x.x.x or
 192.168.x.x. This is the address you can use when connecting to the virtual
 guest OS using ssh after this:
 
-```bash
-ssh username@ip.address
-```
+    ssh username@ip.address
 
 Particularly, the popular development environment _VScode_ can connect to a
 remote host using ssh, in which case one can do development using the locally
@@ -156,23 +140,17 @@ machine using a ssh connection between the host and virtual machine. First, the
 virtual machine needs ssh server installed and started (sometimes this might
 have been done already with the initial installation of the Linux distribution):
 
-```bash
-sudo apt install openssh-server
-sudo systemctl start ssh
-sudo systemctl enable ssh
-```
+    sudo apt install openssh-server
+    sudo systemctl start ssh
+    sudo systemctl enable ssh
 
 Next, check if the virtual machine's firewall is enabled. 
 
-```bash
-sudo ufw status
-```
+    sudo ufw status
 
 If the firewall is not active (i.e. the command responds with `Status: inactive`), you do not need to run the next command. If the command responds with `Status: active`, you need to enable ssh access with the command:
 
-```bash
-sudo ufw allow ssh
-```
+    sudo ufw allow ssh
 
 Next, you need to set up port forwarding from your host machine to the virtual machine. In the Virtualbox window, select your virtual machine. Go to Settings -> Network -> Adapter 1 -> Advanced (arrow down) -> Port Forwarding. This should open a list of Port Forwarding Rules. Create a new rule with the plus icon and set the fields as following:
 
@@ -192,9 +170,7 @@ Your port forwarding rules should now look like this:
 
 Finally, you should be able to access your virtual machine from your host machine using ssh. To test it out, on your host machine, run the command:
 
-```bash
-ssh -p 2222 username@localhost
-```
+    ssh -p 2222 username@localhost
 
 Particularly, the popular development environment VScode can connect to a remote host using ssh, in which case one can do development using the locally installed VScode in the host machine that actually operates on the files in the remote machine over a ssh connection.
 
@@ -207,25 +183,19 @@ assignments. Adnet-agent is implemented in [Rust
 language](https://www.rust-lang.org/). Therefore, next you should install the
 Rust build tools on your virtual machine by running:
 
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 Then follow instructions appearing on terminal.
 
 Clone `adnet-agent` from git repository, for example in your home directory root
 
-```bash
-cd $HOME
-git clone https://github.com/PasiSa/adnet-agent.git
-```
+    cd $HOME
+    git clone https://github.com/PasiSa/adnet-agent.git
 
 Go to the `adnet-agent` directory and build the executable from source:
 
-```bash
-cd adnet-agent
-cargo build
-```
+    cd adnet-agent
+    cargo build
 
 We will tell more about `adnet-agent` later with the assignments. You can find
 the adnet-agent source code in the [git

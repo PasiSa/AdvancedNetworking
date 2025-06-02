@@ -233,10 +233,12 @@ addresses in the DNS database, hence the `tcp_connect` function iterates through
 each of these until connection is successful. This structure contains all
 necessary parameters needed to create a socket and open a connection.
 
-    if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0) {
-        fprintf(stderr, "Failure in name resolution\n");
-        return -1;
-    }
+```c
+if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0) {
+    fprintf(stderr, "Failure in name resolution\n");
+    return -1;
+}
+```
 
 When creating a socket, `ai_family` in the returned `addrinfo` structure is the
 address family, typically either AF_INET (IPv4) or AF_INET6 (IPv6).
@@ -259,16 +261,18 @@ The `ai_addr` parameter that is given to the `connect` call is a sockaddr
 structure, more specifically, `sockaddr_in` in the case of AF_INET address
 family and IPv4 address.
 
-    struct sockaddr_in {
-        short            sin_family;   // e.g. AF_INET
-        unsigned short   sin_port;     // e.g. htons(3490)
-        struct in_addr   sin_addr;     // see struct in_addr, below
-        char             sin_zero[8];  // zero this if you want to
-    };
+```c
+struct sockaddr_in {
+    short            sin_family;   // e.g. AF_INET
+    unsigned short   sin_port;     // e.g. htons(3490)
+    struct in_addr   sin_addr;     // see struct in_addr, below
+    char             sin_zero[8];  // zero this if you want to
+};
 
-    struct in_addr {
-        unsigned long s_addr;  // load with inet_aton()
-    };
+struct in_addr {
+    unsigned long s_addr;  // load with inet_aton()
+};
+```
 
 Essentially, this structure contains a 32-bit IPv4 address and a 16-bit TCP
 port. A common practice in Internet standardization is, that all binary numbers

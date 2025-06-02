@@ -67,13 +67,17 @@ The simple server starts by creating a passive server socket and binding it to
 the address given as command line argument. `server` is the passive server
 socket listening for connections.
 
-    let server = TcpListener::bind(&args[1])?;
+```rust
+let server = TcpListener::bind(&args[1])?;
+```
 
 Then it starts a loop that starts by waiting for the next incoming client. The
 `accept` call may block the execution for a long time.
 
-    let (mut socket, address) = server.accept()?;
-    println!("Accepting connection from {}", address.to_string());
+```rust
+let (mut socket, address) = server.accept()?;
+println!("Accepting connection from {}", address.to_string());
+```
 
 When the call completes, we will get the active `socket` representing the
 connected client, and the address of the client, that will be printed on the
@@ -84,8 +88,10 @@ assuming that client knows that it is expected to write something. If the client
 did not write anything, but would rather wait some input from elsewhere, the
 `read` call would block for a long time.
 
-    let mut buf: [u8; 160] = [0; 160];
-    let readn = socket.read(&mut buf)?;
+```rust
+let mut buf: [u8; 160] = [0; 160];
+let readn = socket.read(&mut buf)?;
+```
 
 Finally, the server echoes the data that was read back to the client, and closes
 the socket, as the lifetime of the local `socket` variable ends at the end of
