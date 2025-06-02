@@ -21,7 +21,7 @@
       {% for item in site.data.sidebar %}
         {% if item.children %}
           <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="collapse" href="#submenu-{{ forloop.index }}" role="button" aria-expanded="false" aria-controls="submenu-{{ forloop.index }}">
+            <a class="nav-link" href="#submenu-{{ forloop.index }}" role="button" aria-expanded="false" aria-controls="submenu-{{ forloop.index }}">
               {% if item.icon %}<i class="{{ item.icon }}"></i> {% endif %}{{ item.title }}
             </a>
             <ul class="collapse list-unstyled ps-3" id="submenu-{{ forloop.index }}">
@@ -98,3 +98,5 @@
   <!-- .sidebar-bottom -->
 </aside>
 <!-- #sidebar -->
+
+<script src="{{ '/assets/js/sidebar-collapse.js' | relative_url }}"></script>
