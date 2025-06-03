@@ -1,4 +1,6 @@
-# Socket programming basics
+---
+title: Socket programming basics
+---
 
 Socket is the basic programming interface between user space applications and
 operating system. Commonly, socket encapsulates one communication session
@@ -231,10 +233,12 @@ addresses in the DNS database, hence the `tcp_connect` function iterates through
 each of these until connection is successful. This structure contains all
 necessary parameters needed to create a socket and open a connection.
 
-    if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0) {
-        fprintf(stderr, "Failure in name resolution\n");
-        return -1;
-    }
+```c
+if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0) {
+    fprintf(stderr, "Failure in name resolution\n");
+    return -1;
+}
+```
 
 When creating a socket, `ai_family` in the returned `addrinfo` structure is the
 address family, typically either AF_INET (IPv4) or AF_INET6 (IPv6).
@@ -257,16 +261,18 @@ The `ai_addr` parameter that is given to the `connect` call is a sockaddr
 structure, more specifically, `sockaddr_in` in the case of AF_INET address
 family and IPv4 address.
 
-    struct sockaddr_in {
-        short            sin_family;   // e.g. AF_INET
-        unsigned short   sin_port;     // e.g. htons(3490)
-        struct in_addr   sin_addr;     // see struct in_addr, below
-        char             sin_zero[8];  // zero this if you want to
-    };
+```c
+struct sockaddr_in {
+    short            sin_family;   // e.g. AF_INET
+    unsigned short   sin_port;     // e.g. htons(3490)
+    struct in_addr   sin_addr;     // see struct in_addr, below
+    char             sin_zero[8];  // zero this if you want to
+};
 
-    struct in_addr {
-        unsigned long s_addr;  // load with inet_aton()
-    };
+struct in_addr {
+    unsigned long s_addr;  // load with inet_aton()
+};
+```
 
 Essentially, this structure contains a 32-bit IPv4 address and a 16-bit TCP
 port. A common practice in Internet standardization is, that all binary numbers
@@ -374,7 +380,7 @@ data structure, there maybe be empty padding spaces between the fields to force
 the larger number values at word boundaries in computer memory, to make their
 processing more efficient. Below picture illustrates the situation.
 
-![Data struct alignment](images/struct-alignment.png "Data struct alignment")
+![Data struct alignment](/images/struct-alignment.png "Data struct alignment")
 
 A simple, but inefficient, way to write such structure could be to do it field
 by field as separate write calls. However, both Rust and C have a way to tell the
@@ -394,7 +400,7 @@ functions separately for each field to translate them to network byte order and
 vice versa. As a reminder, TCP header is illustrated below (from **[RFC
 9293](https://datatracker.ietf.org/doc/html/rfc9293)**):
 
-![TCP header](images/tcp-header.png "TCP header")
+![TCP header](/images/tcp-header.png "TCP header")
 
 ## Socket buffers and flow control
 
@@ -407,7 +413,7 @@ beginning of the packet before it is sent. Currently most packets in the
 Internet are 1500 bytes long, this means that each TCP segment can include
 maximum of 1460 bytes of data, depending on options used in the header.
 
-![Sockets and buffers](images/buffers.png "Sockets and buffers")
+![Sockets and buffers](/images/buffers.png "Sockets and buffers")
 
 After TCP segment is sent, it is not yet removed from the send buffer, because
 it is possible that packet is lost in the network and TCP may need to retransmit

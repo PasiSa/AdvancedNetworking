@@ -1,0 +1,50 @@
+# _data/sidebar.yml
+
+- title: Home
+  url: /
+  icon: "fas fa-home"
+
+- title: About
+  url: /tabs/about/
+  icon: "fas fa-info-circle"
+
+- title: Settup Up
+  url: /environment/
+  icon: "fas fa-gear"
+
+- title: Wireshark
+  url: /wireshark/
+  icon: "fas fa-hat-wizard"
+
+- title: Sockets
+  icon: "fas fa-angles-down"
+  children:
+    - title: Socket Basics
+      url: /socket-basics/
+    - title: Server Sockets
+      url: /server-sockets/
+    - title: UDP Sockets
+      url: /udp/
+
+- title: Linux Networking
+  url: /linux-tcpip/
+  icon: "fas fa-network-wired"
+
+- title: Code Examples
+  url: /examples/
+  icon: "fas fa-code"
+
+- title: Assignments
+  url: /assignments/
+  icon: "fas fa-pen"
+  children:
+    - title: Simple Client
+      url: /assignments/task-001/
+    - title: TCP Server
+      url: /assignments/task-002/
+    - title: Data Transfer using UDP
+      url: /assignments/task-003/
+    - title: Experimenting with QUIC
+      url: /assignments/task-quic/
+    - title: IP Tunnel
+      url: /assignments/task-tun/

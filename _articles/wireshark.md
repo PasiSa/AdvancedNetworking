@@ -1,4 +1,6 @@
-# Wireshark and Mininet
+---
+title: Wireshark and Mininet
+---
 
 Wireshark is a tool that captures network packets near the network interface,
 and provides different kinds of analysis tools for the network traffic. In
@@ -23,7 +25,7 @@ done. In this case (and in the assignments), we are interested in inteface
 `rh1-eth0`, which is the emulated Ethernet interface in node `rh1`. Clicking on
 the Interface name starts capturing traffic.
 
-![Wireshark startup view](images/wireshark-start.png "Wireshark startup view")
+![Wireshark startup view](/images/wireshark-start.png "Wireshark startup view")
 
 After capturing starts, a different view opens where packets start to arrive as
 they appear on the selected wireless interface. The top side of the window shows
@@ -33,7 +35,7 @@ data, for example, in the case of TCP, helping to identify the stream based on
 source and destination ports. It is good to pay attention on who is sender and
 receiver on which row. This helps separating data traffic from acknowledgments.
 
-![Wireshark packet view](images/wireshark-packets.png "Wireshark packet view")
+![Wireshark packet view](/images/wireshark-packets.png "Wireshark packet view")
 
 When one of the rows is clicked, the detailed information of that packet is
 shown in the bottom of the window. The left side parses open each layer of the
@@ -47,7 +49,7 @@ stream, tcptrace time-sequence graph can be useful. It shows the progress of
 selected connection on time-sequence diagram. You can find it from the
 "Statistics" menu.
 
-![Statistics menu](images/wireshark-stats-tcp.png "Statistics menu")
+![Statistics menu](/images/wireshark-stats-tcp.png "Statistics menu")
 
 The tcptrace shows the progression of TCP data segments, acknowledgments and
 size of receiver's advertised window over time. The distance between data packet
@@ -63,7 +65,7 @@ there is a lot of time between data and respective acknowledgment during which
 no data is sent. Apparently there would have been room for even larger
 congestion window, but TCP's slow start prevented efficient use of the link.
 
-![tcptrace](images/wireshark-tcptrace.png "tcptrace")
+![tcptrace](/images/wireshark-tcptrace.png "tcptrace")
 
 Note that if we had taken the trace from the receiving side of the TCP
 connection, i.e. 10.0.0.1 (lh1), in this this case, we would not have been able

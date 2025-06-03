@@ -1,0 +1,39 @@
+---
+---
+
+/* prettier-ignore */
+@use 'main
+{%- if jekyll.environment == 'production' -%}
+  .bundle
+{%- endif -%}
+';
+
+/* append your custom style below */
+
+#sidebar .nav-link i {
+  width: 1em;
+  text-align: center;
+  display: inline-block;
+}
+
+#sidebar ul {
+  margin-bottom: 0 !important;
+}
+
+.collapse {
+  height: 0;            /* collapsed */
+  overflow: hidden;     /* hide contents */
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  transition: height 0.3s ease, padding 1s ease, margin 1s ease;
+}
+
+.collapse.show {
+  height: auto;        /* reset to auto after animation */
+  overflow: hidden;    /* allow content to show */
+  margin: initial;     /* restore margins if needed */
+  padding-top: initial;
+  padding-bottom: initial;
+}

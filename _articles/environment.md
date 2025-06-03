@@ -1,4 +1,6 @@
-# The exercise environment
+---
+title: The exercise environment
+---
 
 ## Setting up Mininet
 

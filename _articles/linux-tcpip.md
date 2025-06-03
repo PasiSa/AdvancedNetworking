@@ -1,4 +1,6 @@
-# Linux Networking
+---
+title: Linux Networking
+---
 
 This is a short section that introduces some tools that may be useful for
 network experimentation.
@@ -126,7 +128,7 @@ together with encryption, TUN interfaces can be used to build secure virtual
 private networks, or they could be used for network emulation, if delays or
 packet losses are enforced on the tunneled packets.
 
-![TUN scenario](images/tun.png "TUN scenario")
+![TUN scenario](/images/tun.png "TUN scenario")
 
 Like the other operations, TUN interface can be set up with the `ip` tool.
 First, the interface is created and activated:

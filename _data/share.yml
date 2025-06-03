@@ -1,0 +1,14 @@
+#  Sharing options at the bottom of the post.
+#  Icons from <https://fontawesome.com/>
+
+platforms:
+  - type: Telegram
+    icon: "fab fa-telegram"
+    link: "https://t.me/share/url?url=URL&text=TITLE"
+
+  # Uncomment below if you need to.
+  #
+  # - type: Linkedin
+  #   icon: "fab fa-linkedin"
+  #   link: "https://www.linkedin.com/feed/?shareActive=true&shareUrl=URL"
+  #
