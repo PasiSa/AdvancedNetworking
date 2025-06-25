@@ -9,7 +9,8 @@ set -o nounset  # Exit on unset variables
 # Configuration
 MININET_REPO="https://github.com/kctong529/mininet.git"
 OPENFLOW_REPO="https://github.com/kctong529/openflow.git"
-INSTALL_DIR="${HOME}/mininet-dev"
+DEFAULT_INSTALL_DIR="${HOME}/mininet-dev"
+INSTALL_DIR=""  # Will be set by user input or command line
 PYTHON="${PYTHON:-python3}"
 
 # Colors for output
@@ -34,6 +35,78 @@ log_warn() {
 
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Prompt for installation directory
+prompt_install_directory() {
+    echo -e "\n${BLUE}=== Installation Directory Setup ===${NC}"
+    echo "Choose where to install Mininet and OpenFlow:"
+    echo "1) Default: $DEFAULT_INSTALL_DIR"
+    echo "2) Custom path"
+    echo -n "Enter your choice (1-2) [1]: "
+    
+    read -r choice
+    choice=${choice:-1}  # Default to 1 if empty
+    
+    case $choice in
+        1)
+            INSTALL_DIR="$DEFAULT_INSTALL_DIR"
+            log_info "Using default installation directory: $INSTALL_DIR"
+            ;;
+        2)
+            echo -n "Enter custom installation path: "
+            read -r custom_path
+            
+            # Expand ~ to home directory if present
+            custom_path="${custom_path/#\~/$HOME}"
+            
+            # Validate the path
+            if [[ -z "$custom_path" ]]; then
+                log_error "Empty path provided, using default"
+                INSTALL_DIR="$DEFAULT_INSTALL_DIR"
+            else
+                INSTALL_DIR="$custom_path"
+                log_info "Using custom installation directory: $INSTALL_DIR"
+            fi
+            ;;
+        *)
+            log_warn "Invalid choice, using default directory"
+            INSTALL_DIR="$DEFAULT_INSTALL_DIR"
+            ;;
+    esac
+    
+    # Confirm the directory
+    echo -e "\n${YELLOW}Installation will proceed in: $INSTALL_DIR${NC}"
+    
+    # Check if directory exists and warn if not empty
+    if [[ -d "$INSTALL_DIR" ]] && [[ -n "$(ls -A "$INSTALL_DIR" 2>/dev/null)" ]]; then
+        echo -e "${YELLOW}Warning: Directory is not empty!${NC}"
+        echo "Contents will be preserved, but conflicts may occur."
+        echo -n "Continue anyway? (y/N): "
+        read -r confirm
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            log_info "Installation cancelled by user"
+            exit 0
+        fi
+    fi
+    
+    # Create directory if it doesn't exist
+    if [[ ! -d "$INSTALL_DIR" ]]; then
+        echo -n "Directory doesn't exist. Create it? (Y/n): "
+        read -r create_dir
+        create_dir=${create_dir:-Y}  # Default to Y
+        
+        if [[ "$create_dir" =~ ^[Yy]$ ]]; then
+            mkdir -p "$INSTALL_DIR" || {
+                log_error "Failed to create directory: $INSTALL_DIR"
+                exit 1
+            }
+            log_success "Created directory: $INSTALL_DIR"
+        else
+            log_error "Cannot proceed without installation directory"
+            exit 1
+        fi
+    fi
 }
 
 # Detect distribution
@@ -331,7 +404,17 @@ done
 # Main execution
 main() {
     log_info "Starting Mininet + OpenFlow installation"
-    log_info "Installation directory: $INSTALL_DIR"
+    
+    # Set installation directory
+    if [[ "$DIR_FROM_CMDLINE" == true ]]; then
+        log_info "Using command-line specified directory: $INSTALL_DIR"
+    elif [[ "$NON_INTERACTIVE" == true ]]; then
+        INSTALL_DIR="$DEFAULT_INSTALL_DIR"
+        log_info "Using default directory (non-interactive): $INSTALL_DIR"
+    else
+        prompt_install_directory
+    fi
+    
     log_info "Mininet repository: $MININET_REPO"
     log_info "OpenFlow repository: $OPENFLOW_REPO"
     
@@ -373,6 +456,7 @@ main() {
     cleanup
     
     log_success "Installation completed successfully!"
+    log_info "Installation location: $INSTALL_DIR"
     log_info "Please run 'source ~/.bashrc' or restart your terminal to use the new environment"
     log_info "Test with: sudo mn --test pingall"
 }
