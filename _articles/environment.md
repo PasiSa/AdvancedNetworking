@@ -4,6 +4,12 @@ title: The exercise environment
 
 Now try to fetch [this script](https://github.com/kctong529/AdvancedNetworking/tree/main/assets/install.sh) for installation.
 
+```
+curl https://kctong529.github.io/AdvancedNetworking/assets/install.sh > install.sh
+sudo chmod +x install.sh
+./install.sh
+```
+
 ## Setting up Mininet
 
 Many of the exercises on this course use the **[Mininet
