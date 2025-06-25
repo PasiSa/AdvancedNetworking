@@ -358,6 +358,8 @@ INSTALL_OVS=true
 INSTALL_TOOLS=true
 TEST_ONLY=false
 CLEAN_INSTALL=false
+NON_INTERACTIVE=false
+DIR_FROM_CMDLINE=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -367,6 +369,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -d|--dir)
             INSTALL_DIR="$2"
+            DIR_FROM_CMDLINE=true
             shift 2
             ;;
         -m|--mininet-repo)
@@ -391,6 +394,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --clean)
             CLEAN_INSTALL=true
+            shift
+            ;;
+        --non-interactive)
+            NON_INTERACTIVE=true
             shift
             ;;
         *)
