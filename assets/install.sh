@@ -149,7 +149,7 @@ install_dependencies() {
         "Ubuntu"|"Debian"*)
             $PKG_INSTALL \
                 git build-essential autoconf automake libtool \
-                python3 python3-pip python3-dev python3-setuptools \
+                python3 python3-pip python3-dev python3-setuptools python3-venv \
                 gcc make socat psmisc xterm openssh-client iperf \
                 iproute2 net-tools ethtool help2man pkg-config \
                 libssl-dev libffi-dev
@@ -157,7 +157,7 @@ install_dependencies() {
         "Fedora"*)
             $PKG_INSTALL \
                 git gcc make autoconf automake libtool \
-                python3 python3-pip python3-devel python3-setuptools \
+                python3 python3-pip python3-devel python3-setuptools python3-venv \
                 socat psmisc xterm openssh-clients iperf \
                 iproute net-tools ethtool help2man pkgconfig \
                 openssl-devel libffi-devel
