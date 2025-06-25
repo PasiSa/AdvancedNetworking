@@ -164,8 +164,84 @@ install_dependencies() {
             ;;
     esac
     
-    # Install Python packages
-    pip3 install --user pexpect
+    # Install Python packages - handle externally-managed-environment error
+    log_info "Installing Python packages..."
+    
+    # Check if we're in an externally-managed environment
+    EXTERNALLY_MANAGED=false
+    if $PYTHON -m pip install --user --dry-run pexpect 2>&1 | grep -q "externally-managed-environment"; then
+        EXTERNALLY_MANAGED=true
+        log_warn "Detected externally-managed Python environment"
+    fi
+    
+    # Try different installation methods based on environment
+    if [ "$EXTERNALLY_MANAGED" = true ]; then
+        log_info "Using system package manager for Python packages (externally-managed environment)..."
+        
+        case $OS in
+            "Ubuntu"|"Debian"*)
+                if $PKG_INSTALL python3-pexpect; then
+                    log_success "Installed pexpect via apt"
+                else
+                    # Try with pipx as alternative
+                    log_info "Trying pipx installation..."
+                    if $PKG_INSTALL pipx; then
+                        pipx install pexpect
+                        log_success "Installed pexpect via pipx"
+                    else
+                        # Try breaking the environment restriction (use with caution)
+                        log_warn "Attempting pip installation with --break-system-packages..."
+                        if $PYTHON -m pip install --user --break-system-packages pexpect; then
+                            log_success "Installed pexpect with --break-system-packages"
+                        else
+                            log_error "Failed to install pexpect via all methods"
+                            exit 1
+                        fi
+                    fi
+                fi
+                ;;
+            "Fedora"*)
+                if $PKG_INSTALL python3-pexpect; then
+                    log_success "Installed pexpect via dnf"
+                else
+                    # Try with pipx as alternative
+                    log_info "Trying pipx installation..."
+                    if $PKG_INSTALL pipx; then
+                        pipx install pexpect
+                        log_success "Installed pexpect via pipx"
+                    else
+                        log_warn "Attempting pip installation with --break-system-packages..."
+                        if $PYTHON -m pip install --user --break-system-packages pexpect; then
+                            log_success "Installed pexpect with --break-system-packages"
+                        else
+                            log_error "Failed to install pexpect via all methods"
+                            exit 1
+                        fi
+                    fi
+                fi
+                ;;
+        esac
+    else
+        # Standard pip installation for non-externally-managed environments
+        log_info "Upgrading pip to latest version..."
+        $PYTHON -m pip install --user --upgrade pip setuptools wheel
+        
+        if $PYTHON -m pip install --user pexpect; then
+            log_success "Installed pexpect via pip --user"
+        else
+            log_warn "pip --user installation failed, trying system package manager..."
+            case $OS in
+                "Ubuntu"|"Debian"*)
+                    $PKG_INSTALL python3-pexpect
+                    log_success "Installed pexpect via apt"
+                    ;;
+                "Fedora"*)
+                    $PKG_INSTALL python3-pexpect
+                    log_success "Installed pexpect via dnf"
+                    ;;
+            esac
+        fi
+    fi
     
     log_success "System dependencies installed"
 }
