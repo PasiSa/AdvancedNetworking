@@ -152,7 +152,7 @@ install_dependencies() {
                 python3 python3-pip python3-dev python3-setuptools python3-venv \
                 gcc make socat psmisc xterm openssh-client iperf \
                 iproute2 net-tools ethtool help2man pkg-config \
-                libssl-dev libffi-dev
+                libssl-dev libffi-dev telnet
             ;;
         "Fedora"*)
             $PKG_INSTALL \
@@ -160,7 +160,7 @@ install_dependencies() {
                 python3 python3-pip python3-devel python3-setuptools python3-venv \
                 socat psmisc xterm openssh-clients iperf \
                 iproute net-tools ethtool help2man pkgconfig \
-                openssl-devel libffi-devel
+                openssl-devel libffi-devel telnet
             ;;
     esac
     
@@ -350,7 +350,6 @@ install_tools() {
 configure_environment() {
     log_info "Configuring environment..."
     
-    # Add paths to bashrc if not already present
     BASHRC="$HOME/.bashrc"
     
     if ! grep -q "MININET_DIR" "$BASHRC"; then
@@ -361,7 +360,11 @@ configure_environment() {
         echo "export POX_DIR=$INSTALL_DIR/pox" >> "$BASHRC"
         echo "export PATH=\$PATH:\$OPENFLOW_DIR/utilities:\$POX_DIR" >> "$BASHRC"
     fi
-    
+
+    if ! grep -q "alias mn=" "$BASHRC"; then
+        echo "alias mn='$INSTALL_DIR/mininet/mininet-venv/bin/mn'" >> "$BASHRC"
+    fi
+
     log_success "Environment configured"
 }
 
