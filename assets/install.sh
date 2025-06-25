@@ -361,9 +361,8 @@ configure_environment() {
         echo "export PATH=\$PATH:\$OPENFLOW_DIR/utilities:\$POX_DIR" >> "$BASHRC"
     fi
 
-    if ! grep -q "alias mn=" "$BASHRC"; then
-        echo "alias mn='$INSTALL_DIR/mininet/mininet-venv/bin/mn'" >> "$BASHRC"
-    fi
+    # Symlink mn for system-wide access (sudo and root)
+    sudo ln -sf "$INSTALL_DIR/mininet/mininet-venv/bin/mn" /usr/local/bin/mn
 
     log_success "Environment configured"
 }
