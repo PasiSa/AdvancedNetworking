@@ -2,23 +2,19 @@
 title: The exercise environment
 ---
 
-Now try to fetch [this script](https://github.com/kctong529/AdvancedNetworking/tree/main/assets/install.sh) for installation.
+This guide will help you set up a Linux environment with **[Mininet](https://mininet.org/)** for network simulation exercises. Mininet is a network emulator that creates virtual network topologies for testing and experimentation.
 
-```
-curl https://kctong529.github.io/AdvancedNetworking/assets/install.sh > install.sh
-sudo chmod +x install.sh
-./install.sh
-```
+# Prerequisites
 
-## Setting up Mininet
+- A computer capable of running virtual machines
+- At least 4GB RAM and 20GB free disk space
+- Basic familiarity with command line interfaces
 
-Many of the exercises on this course use the **[Mininet
-emulator](https://mininet.org/)** to build virtual network environments with given
-topologies and characteristics. Mininet requires Linux to run. If you do not
-have a Linux system available, you will need a virtual machine hosting the Linux
-system.
+# 1. Linux Environment Setup
 
-There are different options for virtual machine, including:
+## Virtual Machine Options
+
+Since Mininet requires Linux, you'll need to set up a virtual machine if you don't have Linux installed natively. There are different options for virtual machine, including:
 
 - [VirtualBox](https://www.oracle.com/virtualization/technologies/vm/downloads/virtualbox-downloads.html)
   is available for all common operating systems.
@@ -48,9 +44,6 @@ reboot again the virtual machine:
 Note, that the above is not needed, if you use UTM that provides a separate
 image in its gallery.
 
-As the next step, you install and use the needed networking tools, according to
-the instructions in this chapter.
-
 If you are using Windows, you should note that Windows Subsystem for Linux does
 not work (at least very easily) with mininet and other networking tools used on
 this course, but you'll need an actual virtual machine installation.
@@ -65,27 +58,55 @@ the command line interface. In your Ubuntu system, locate "Terminal" to open a
 command line terminal window, where you start working on the following
 instructions.
 
-After getting your virtual machine up and running, you should update the Ubuntu
-packages and install a few other packages needed by the tools in this course:
+# 2. Quick Installation
 
-    sudo apt-get update
-    sudo apt-get upgrade
-    sudo apt install git python-is-python3 help2man pip python3-pip net-tools
-    sudo apt install telnet cgroup-tools cgroupfs-mount iputils-ping curl
+To install Mininet and all required networking tools for the Advanced Networking course, download and run the installation script:
 
-Clone Mininet from git repository. On this course we use our own fork that has a
-few additional scripts and modifications compared to the original parent
-repository:
+```bash
+# Download the installation script
+curl -O https://github.com/kctong529/AdvancedNetworking/tree/main/assets/install.sh
 
-    git clone https://github.com/PasiSa/mininet
+# Make executable and run
+chmod +x install.sh
+./install.sh
+```
 
-After this, install mininet, along with some additional network tools it needs:
+## Installation Options
 
-    mininet/util/install.sh -fw
-    sudo apt-get install openvswitch-switch
-    sudo service openvswitch-switch start
-    cd mininet
-    sudo make install
+The script supports several command-line options for customization:
+
+```bash
+# View all options
+./install.sh --help
+
+# Custom installation directory
+./install.sh --dir ~/ELEC-E7321
+
+# Non-interactive mode (for automation)
+./install.sh --non-interactive
+
+# Test existing installation
+./install.sh --test-only
+
+# Clean installation (removes existing files)
+./install.sh --clean
+```
+
+## Getting Help
+
+If you encounter issues during installation:
+
+1. **Check the script output** - All steps are clearly logged with colored status messages
+2. **Review system requirements** - Ensure your Linux distribution is supported
+3. **Verify internet connectivity** - The script downloads packages and source code
+4. **Check disk space** - Ensure you have sufficient storage available
+5. **Run with verbose output** - The script provides detailed information about each step
+
+The installation typically takes 10-15 minutes depending on your system and internet speed. Once complete, you'll have a fully functional SDN development environment ready for network experiments and coursework.
+
+# 3. Testing Your Installation
+
+## Basic Mininet Test
 
 Now Mininet should work. You can try it using one of our simple network
 scripts:
@@ -140,7 +161,7 @@ remote host using ssh, in which case one can do development using the locally
 installed VScode in the host machine that actually operates on the files in the
 remote machine over a ssh connection.
 
-## Working over ssh from the host machine (Virtualbox)
+# 4. SSH Access Setup (Optional)
 
 **Optional:** When working with a virtual machine, it may be more convenient to
 use the tools and terminal available in the host machine, and access the virtual
@@ -182,7 +203,7 @@ Finally, you should be able to access your virtual machine from your host machin
 
 Particularly, the popular development environment VScode can connect to a remote host using ssh, in which case one can do development using the locally installed VScode in the host machine that actually operates on the files in the remote machine over a ssh connection.
 
-## Setting up the course exercise software
+# 5. Course Software Setup
 
 Many of the exercises on this course communicate with a tool called
 "adnet-agent", that performs different tasks depending on the exercise, and
@@ -236,7 +257,7 @@ book](https://doc.rust-lang.org/book/). There are plenty of Rust examples in the
 Internet that can be found with some googling. Also ChatGPT knows Rust pretty
 well.
 
-Note that the cargo build and package management system used by Rust does not
+Note that the argo build and package management system used by Rust does not
 work inside the Mininet virtual network, because it tries to contact resources
 elsewhere in the Internet. Therefore, if you use Rust to develop your
 implementations, instead of using `cargo run` in the Mininet environment you
