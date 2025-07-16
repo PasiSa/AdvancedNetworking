@@ -4,15 +4,15 @@ title: The exercise environment
 
 This guide will help you set up a Linux environment with **[Mininet](https://mininet.org/)** for network simulation exercises. Mininet is a network emulator that creates virtual network topologies for testing and experimentation.
 
-# Prerequisites
+## Prerequisites
 
 - A computer capable of running virtual machines
 - At least 4GB RAM and 20GB free disk space
 - Basic familiarity with command line interfaces
 
-# 1. Linux Environment Setup
+## 1. Linux Environment Setup
 
-## Virtual Machine Options
+### Virtual Machine Options
 
 Since Mininet requires Linux, you'll need to set up a virtual machine if you don't have Linux installed natively. There are different options for virtual machine, including:
 
@@ -58,9 +58,9 @@ the command line interface. In your Ubuntu system, locate "Terminal" to open a
 command line terminal window, where you start working on the following
 instructions.
 
-# 2. Quick Installation
+## 2. Quick Installation
 
-To install Mininet and all required networking tools for the Advanced Networking course, download and run the installation script:
+To install Mininet and all required networking tools for the Advanced Networking course, download and run the [installation script](https://github.com/kctong529/AdvancedNetworking/tree/main/assets/install.sh):
 
 ```bash
 # Download the installation script
@@ -71,7 +71,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
-## Installation Options
+### Installation Options
 
 The script supports several command-line options for customization:
 
@@ -92,7 +92,7 @@ The script supports several command-line options for customization:
 ./install.sh --clean
 ```
 
-## Getting Help
+### Getting Help
 
 If you encounter issues during installation:
 
@@ -104,9 +104,9 @@ If you encounter issues during installation:
 
 The installation typically takes 10-15 minutes depending on your system and internet speed. Once complete, you'll have a fully functional SDN development environment ready for network experiments and coursework.
 
-# 3. Testing Your Installation
+## 3. Testing Your Installation
 
-## Basic Mininet Test
+### Basic Mininet Test
 
 Now Mininet should work. You can try it using one of our simple network
 scripts:
@@ -132,7 +132,7 @@ unfinished state that prevents mininet from being started again. In such
 situation you can clean up the network state by typing `sudo mn -c`, and try to
 start mininet after that.
 
-## Working over ssh from the host machine (UTM)
+### Working over ssh from the host machine (UTM)
 
 **Optional:** When working with a virtual machine, it may be more convenient to
 use the tools and terminal available in the host machine, and access the virtual
@@ -161,7 +161,7 @@ remote host using ssh, in which case one can do development using the locally
 installed VScode in the host machine that actually operates on the files in the
 remote machine over a ssh connection.
 
-# 4. SSH Access Setup (Optional)
+## 4. SSH Access Setup (Optional)
 
 **Optional:** When working with a virtual machine, it may be more convenient to
 use the tools and terminal available in the host machine, and access the virtual
@@ -203,7 +203,7 @@ Finally, you should be able to access your virtual machine from your host machin
 
 Particularly, the popular development environment VScode can connect to a remote host using ssh, in which case one can do development using the locally installed VScode in the host machine that actually operates on the files in the remote machine over a ssh connection.
 
-# 5. Course Software Setup
+## 5. Course Software Setup
 
 Many of the exercises on this course communicate with a tool called
 "adnet-agent", that performs different tasks depending on the exercise, and
