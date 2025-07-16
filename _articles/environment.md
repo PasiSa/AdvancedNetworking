@@ -60,7 +60,7 @@ instructions.
 
 ## 2. Quick Installation
 
-To install Mininet and all required networking tools for the Advanced Networking course, download and run the [installation script](https://github.com/kctong529/AdvancedNetworking/tree/main/assets/install.sh):
+To install Mininet and all required networking tools for the Advanced Networking course, download and run the [installation script](../assets/install.sh):
 
 ```bash
 # Download the installation script
