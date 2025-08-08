@@ -2,15 +2,19 @@
 title: The exercise environment
 ---
 
-## Setting up Mininet
+This guide will help you set up a Linux environment with **[Mininet](https://mininet.org/)** for network simulation exercises. Mininet is a network emulator that creates virtual network topologies for testing and experimentation.
 
-Many of the exercises on this course use the **[Mininet
-emulator](https://mininet.org/)** to build virtual network environments with given
-topologies and characteristics. Mininet requires Linux to run. If you do not
-have a Linux system available, you will need a virtual machine hosting the Linux
-system.
+## Prerequisites
 
-There are different options for virtual machine, including:
+- A computer capable of running virtual machines
+- At least 4GB RAM and 20GB free disk space
+- Basic familiarity with command line interfaces
+
+## 1. Linux Environment Setup
+
+### Virtual Machine Options
+
+Since Mininet requires Linux, you'll need to set up a virtual machine if you don't have Linux installed natively. There are different options for virtual machine, including:
 
 - [VirtualBox](https://www.oracle.com/virtualization/technologies/vm/downloads/virtualbox-downloads.html)
   is available for all common operating systems.
@@ -40,6 +44,7 @@ reboot again the virtual machine:
 Note, that the above is not needed, if you use UTM that provides a separate
 image in its gallery.
 
+
 As the next step, you install and use the needed networking tools, according to
 the instructions in this chapter.
 
@@ -57,27 +62,55 @@ the command line interface. In your Ubuntu system, locate "Terminal" to open a
 command line terminal window, where you start working on the following
 instructions.
 
-After getting your virtual machine up and running, you should update the Ubuntu
-packages and install a few other packages needed by the tools in this course:
+## 2. Quick Installation
 
-    sudo apt-get update
-    sudo apt-get upgrade
-    sudo apt install git python-is-python3 help2man pip python3-pip net-tools
-    sudo apt install telnet cgroup-tools cgroupfs-mount iputils-ping curl
+To install Mininet and all required networking tools for the Advanced Networking course, download and run the [installation script](../assets/install.sh):
 
-Clone Mininet from git repository. On this course we use our own fork that has a
-few additional scripts and modifications compared to the original parent
-repository:
+```bash
+# Download the installation script
+curl -O https://github.com/kctong529/AdvancedNetworking/tree/main/assets/install.sh
 
-    git clone https://github.com/PasiSa/mininet
+# Make executable and run
+chmod +x install.sh
+./install.sh
+```
 
-After this, install mininet, along with some additional network tools it needs:
+### Installation Options
 
-    mininet/util/install.sh -fw
-    sudo apt-get install openvswitch-switch
-    sudo service openvswitch-switch start
-    cd mininet
-    sudo make install
+The script supports several command-line options for customization:
+
+```bash
+# View all options
+./install.sh --help
+
+# Custom installation directory
+./install.sh --dir ~/ELEC-E7321
+
+# Non-interactive mode (for automation)
+./install.sh --non-interactive
+
+# Test existing installation
+./install.sh --test-only
+
+# Clean installation (removes existing files)
+./install.sh --clean
+```
+
+### Getting Help
+
+If you encounter issues during installation:
+
+1. **Check the script output** - All steps are clearly logged with colored status messages
+2. **Review system requirements** - Ensure your Linux distribution is supported
+3. **Verify internet connectivity** - The script downloads packages and source code
+4. **Check disk space** - Ensure you have sufficient storage available
+5. **Run with verbose output** - The script provides detailed information about each step
+
+The installation typically takes 10-15 minutes depending on your system and internet speed. Once complete, you'll have a fully functional SDN development environment ready for network experiments and coursework.
+
+## 3. Testing Your Installation
+
+### Basic Mininet Test
 
 Now Mininet should work. You can try it using one of our simple network
 scripts:
@@ -103,36 +136,7 @@ unfinished state that prevents mininet from being started again. In such
 situation you can clean up the network state by typing `sudo mn -c`, and try to
 start mininet after that.
 
-## Working over ssh from the host machine (UTM)
-
-**Optional:** When working with a virtual machine, it may be more convenient to
-use the tools and terminal available in the host machine, and access the virtual
-machine using a ssh connection between the host and virtual machine. First, the
-virtual machine needs ssh server installed and started (sometimes this might
-have been done already with the initial installation of the Linux distribution):
-
-    sudo apt install openssh-server
-    sudo systemctl start ssh
-    sudo systemctl enable ssh
-
-After this you should find the IP addressed the virtual guest system uses
-internally. Type
-
-    ip addr show
-
-and locate the IP address associated with a network interface. It should be an
-address in the private address space, for example starting with 10.x.x.x or
-192.168.x.x. This is the address you can use when connecting to the virtual
-guest OS using ssh after this:
-
-    ssh username@ip.address
-
-Particularly, the popular development environment _VScode_ can connect to a
-remote host using ssh, in which case one can do development using the locally
-installed VScode in the host machine that actually operates on the files in the
-remote machine over a ssh connection.
-
-## Working over ssh from the host machine (Virtualbox)
+## 4. SSH Access Setup (Optional)
 
 **Optional:** When working with a virtual machine, it may be more convenient to
 use the tools and terminal available in the host machine, and access the virtual
@@ -148,11 +152,29 @@ Next, check if the virtual machine's firewall is enabled.
 
     sudo ufw status
 
-If the firewall is not active (i.e. the command responds with `Status: inactive`), you do not need to run the next command. If the command responds with `Status: active`, you need to enable ssh access with the command:
+If the firewall is not active (i.e. the command responds with `Status: inactive`),
+you do not need to run the next command. If the command responds with `Status: active`,
+you need to enable ssh access with the command:
 
     sudo ufw allow ssh
 
-Next, you need to set up port forwarding from your host machine to the virtual machine. In the Virtualbox window, select your virtual machine. Go to Settings -> Network -> Adapter 1 -> Advanced (arrow down) -> Port Forwarding. This should open a list of Port Forwarding Rules. Create a new rule with the plus icon and set the fields as following:
+After this you should find the IP addressed the virtual guest system uses
+internally. Type
+
+    ip addr show
+
+and locate the IP address associated with a network interface. It should be an
+address in the private address space, for example starting with 10.x.x.x or
+192.168.x.x. This is the address you can use when connecting to the virtual
+guest OS using ssh after this:
+
+    ssh username@ip.address
+
+Next, you need to set up port forwarding from your host machine to the virtual machine.
+In the Virtualbox window, select your virtual machine. Go to
+Settings -> Network -> Adapter 1 -> Advanced (arrow down) -> Port Forwarding.
+This should open a list of Port Forwarding Rules. Create a new rule with the plus
+icon and set the fields as following:
 
 | Field        | Value            |
 |--------------|------------------|
@@ -167,14 +189,16 @@ Your port forwarding rules should now look like this:
 
 ![Port forwarding rules](/images/virtualbox-port-forwarding.png "Port forwarding rules")
 
-
-Finally, you should be able to access your virtual machine from your host machine using ssh. To test it out, on your host machine, run the command:
+Finally, you should be able to access your virtual machine from your host machine using ssh.
+To test it out, on your host machine, run the command:
 
     ssh -p 2222 username@localhost
 
-Particularly, the popular development environment VScode can connect to a remote host using ssh, in which case one can do development using the locally installed VScode in the host machine that actually operates on the files in the remote machine over a ssh connection.
+Particularly, the popular development environment VScode can connect to a remote host using ssh,
+in which case one can do development using the locally installed VScode in the host machine that
+actually operates on the files in the remote machine over a ssh connection.
 
-## Setting up the course exercise software
+## 5. Course Software Setup
 
 Many of the exercises on this course communicate with a tool called
 "adnet-agent", that performs different tasks depending on the exercise, and
