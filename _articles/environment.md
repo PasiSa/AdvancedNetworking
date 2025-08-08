@@ -44,6 +44,10 @@ reboot again the virtual machine:
 Note, that the above is not needed, if you use UTM that provides a separate
 image in its gallery.
 
+
+As the next step, you install and use the needed networking tools, according to
+the instructions in this chapter.
+
 If you are using Windows, you should note that Windows Subsystem for Linux does
 not work (at least very easily) with mininet and other networking tools used on
 this course, but you'll need an actual virtual machine installation.
@@ -257,7 +261,7 @@ book](https://doc.rust-lang.org/book/). There are plenty of Rust examples in the
 Internet that can be found with some googling. Also ChatGPT knows Rust pretty
 well.
 
-Note that the argo build and package management system used by Rust does not
+Note that the cargo build and package management system used by Rust does not
 work inside the Mininet virtual network, because it tries to contact resources
 elsewhere in the Internet. Therefore, if you use Rust to develop your
 implementations, instead of using `cargo run` in the Mininet environment you
