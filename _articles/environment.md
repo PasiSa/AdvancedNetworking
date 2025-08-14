@@ -44,6 +44,10 @@ reboot again the virtual machine:
 Note, that the above is not needed, if you use UTM that provides a separate
 image in its gallery.
 
+
+As the next step, you install and use the needed networking tools, according to
+the instructions in this chapter.
+
 If you are using Windows, you should note that Windows Subsystem for Linux does
 not work (at least very easily) with mininet and other networking tools used on
 this course, but you'll need an actual virtual machine installation.
@@ -132,35 +136,6 @@ unfinished state that prevents mininet from being started again. In such
 situation you can clean up the network state by typing `sudo mn -c`, and try to
 start mininet after that.
 
-### Working over ssh from the host machine (UTM)
-
-**Optional:** When working with a virtual machine, it may be more convenient to
-use the tools and terminal available in the host machine, and access the virtual
-machine using a ssh connection between the host and virtual machine. First, the
-virtual machine needs ssh server installed and started (sometimes this might
-have been done already with the initial installation of the Linux distribution):
-
-    sudo apt install openssh-server
-    sudo systemctl start ssh
-    sudo systemctl enable ssh
-
-After this you should find the IP addressed the virtual guest system uses
-internally. Type
-
-    ip addr show
-
-and locate the IP address associated with a network interface. It should be an
-address in the private address space, for example starting with 10.x.x.x or
-192.168.x.x. This is the address you can use when connecting to the virtual
-guest OS using ssh after this:
-
-    ssh username@ip.address
-
-Particularly, the popular development environment _VScode_ can connect to a
-remote host using ssh, in which case one can do development using the locally
-installed VScode in the host machine that actually operates on the files in the
-remote machine over a ssh connection.
-
 ## 4. SSH Access Setup (Optional)
 
 **Optional:** When working with a virtual machine, it may be more convenient to
@@ -177,11 +152,29 @@ Next, check if the virtual machine's firewall is enabled.
 
     sudo ufw status
 
-If the firewall is not active (i.e. the command responds with `Status: inactive`), you do not need to run the next command. If the command responds with `Status: active`, you need to enable ssh access with the command:
+If the firewall is not active (i.e. the command responds with `Status: inactive`),
+you do not need to run the next command. If the command responds with `Status: active`,
+you need to enable ssh access with the command:
 
     sudo ufw allow ssh
 
-Next, you need to set up port forwarding from your host machine to the virtual machine. In the Virtualbox window, select your virtual machine. Go to Settings -> Network -> Adapter 1 -> Advanced (arrow down) -> Port Forwarding. This should open a list of Port Forwarding Rules. Create a new rule with the plus icon and set the fields as following:
+After this you should find the IP addressed the virtual guest system uses
+internally. Type
+
+    ip addr show
+
+and locate the IP address associated with a network interface. It should be an
+address in the private address space, for example starting with 10.x.x.x or
+192.168.x.x. This is the address you can use when connecting to the virtual
+guest OS using ssh after this:
+
+    ssh username@ip.address
+
+Next, you need to set up port forwarding from your host machine to the virtual machine.
+In the Virtualbox window, select your virtual machine. Go to
+Settings -> Network -> Adapter 1 -> Advanced (arrow down) -> Port Forwarding.
+This should open a list of Port Forwarding Rules. Create a new rule with the plus
+icon and set the fields as following:
 
 | Field        | Value            |
 |--------------|------------------|
@@ -196,12 +189,14 @@ Your port forwarding rules should now look like this:
 
 ![Port forwarding rules](/images/virtualbox-port-forwarding.png "Port forwarding rules")
 
-
-Finally, you should be able to access your virtual machine from your host machine using ssh. To test it out, on your host machine, run the command:
+Finally, you should be able to access your virtual machine from your host machine using ssh.
+To test it out, on your host machine, run the command:
 
     ssh -p 2222 username@localhost
 
-Particularly, the popular development environment VScode can connect to a remote host using ssh, in which case one can do development using the locally installed VScode in the host machine that actually operates on the files in the remote machine over a ssh connection.
+Particularly, the popular development environment VScode can connect to a remote host using ssh,
+in which case one can do development using the locally installed VScode in the host machine that
+actually operates on the files in the remote machine over a ssh connection.
 
 ## 5. Course Software Setup
 
@@ -257,7 +252,7 @@ book](https://doc.rust-lang.org/book/). There are plenty of Rust examples in the
 Internet that can be found with some googling. Also ChatGPT knows Rust pretty
 well.
 
-Note that the argo build and package management system used by Rust does not
+Note that the cargo build and package management system used by Rust does not
 work inside the Mininet virtual network, because it tries to contact resources
 elsewhere in the Internet. Therefore, if you use Rust to develop your
 implementations, instead of using `cargo run` in the Mininet environment you
