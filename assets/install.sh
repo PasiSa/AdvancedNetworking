@@ -666,6 +666,16 @@ install_mininet() {
         exit 1
     fi
     
+    # Install Mininet Python module for import access
+    log_step "Installing Mininet Python module..."
+    log_info "This enables 'from mininet.net import Mininet' in Python scripts"
+    if sudo python3 setup.py develop; then
+        log_success "Mininet Python module installed successfully."
+    else
+        log_error "Failed to install Mininet Python module."
+        log_warning "You may need to run 'sudo python3 setup.py develop' manually later."
+    fi
+    
     # Create symbolic link for system-wide access
     log_step "Creating system-wide access link..."
     if sudo ln -sf "$INSTALL_DIR/mininet/mininet-venv/bin/mn" /usr/local/bin/mn; then
@@ -886,6 +896,14 @@ test_installation() {
         test_passed=false
     fi
     
+    # Test 1b: Mininet Python module availability
+    if test_mininet_python_module; then
+        log_success "✓ Mininet Python module test passed"
+    else
+        log_error "✗ Mininet Python module test failed"
+        test_passed=false
+    fi
+    
     # Test 2: OpenFlow utilities
     if test_openflow_utilities; then
         log_success "✓ OpenFlow utilities test passed"
@@ -935,6 +953,21 @@ test_mininet_command() {
         return 0
     else
         log_error "Mininet command 'mn' not found in PATH"
+        return 1
+    fi
+}
+
+# Function: test_mininet_python_module
+# Purpose: Test if Mininet Python module can be imported
+test_mininet_python_module() {
+    log_step "Testing Mininet Python module availability..."
+    
+    if python3 -c "from mininet.net import Mininet; from mininet.node import OVSKernelSwitch; print('Mininet Python module is available')" 2>/dev/null; then
+        log_info "Mininet Python module can be imported successfully"
+        return 0
+    else
+        log_error "Failed to import Mininet Python module"
+        log_error "You may need to run: cd $INSTALL_DIR/mininet && sudo python3 setup.py develop"
         return 1
     fi
 }
