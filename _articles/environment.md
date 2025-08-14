@@ -68,7 +68,7 @@ To install Mininet and all required networking tools for the Advanced Networking
 
 ```bash
 # Download the installation script
-curl -O https://github.com/kctong529/AdvancedNetworking/tree/main/assets/install.sh
+curl -O https://raw.githubusercontent.com/kctong529/AdvancedNetworking/main/assets/install.sh
 
 # Make executable and run
 chmod +x install.sh
