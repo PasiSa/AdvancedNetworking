@@ -347,7 +347,7 @@ install_system_dependencies() {
                 openssl-devel libffi-devel telnet
             ;;
     esac
-    
+
     # Ensure 'python' command exists
     if ! command -v python >/dev/null 2>&1; then
         log_info "Setting 'python' to point to python3 via alternatives..."
@@ -363,98 +363,162 @@ install_system_dependencies() {
 install_python_dependencies() {
     log_section "Python Dependencies Installation"
     
-    log_step "Installing Python packages..."
+    log_step "Verifying Python package availability..."
     
-    # List of required Python packages
-    local -a python_packages=(
-        "pexpect"               # Process automation library (required by Mininet)
-    )
-    
-    # Check if we're in an externally-managed Python environment
-    # This is common on newer Linux distributions to prevent conflicts
-    local externally_managed=false
-    
-    if $PYTHON -m pip install --user --dry-run pexpect 2>&1 | grep -q "externally-managed-environment"; then
-        externally_managed=true
-        log_warning "Detected externally-managed Python environment."
-        log_info "This is common on newer Linux distributions."
+    # Check if pexpect is available via system packages or already installed
+    if check_python_package_availability; then
+        log_success "All Python dependencies are available."
+        return 0
     fi
     
-    # Install Python packages using the most appropriate method
-    if [[ "$externally_managed" == true ]]; then
-        install_python_packages_system
+    # If system packages didn't work, try alternative methods
+    log_warning "System packages may not include all required Python dependencies."
+    log_info "Attempting alternative installation methods..."
+    
+    # Try different installation approaches in order of preference
+    if install_python_via_venv; then
+        log_success "Python dependencies installed via virtual environment."
+    elif install_python_via_pipx; then
+        log_success "Python dependencies installed via pipx."
+    elif install_python_with_break_system; then
+        log_success "Python dependencies installed with --break-system-packages."
     else
-        install_python_packages_pip
-    fi
-    
-    log_success "Python dependencies installed successfully."
-}
-
-# Function: install_python_packages_system
-# Purpose: Install Python packages using system package manager
-install_python_packages_system() {
-    log_info "Installing Python packages via system package manager..."
-    
-    case $OS in
-        "Ubuntu"|"Debian"*)
-            if eval "$PKG_INSTALL" python3-pexpect; then
-                log_success "Installed pexpect via apt."
-            else
-                attempt_alternative_python_install
-            fi
-            ;;
-        "Fedora"*|"CentOS"*|"Red Hat"*)
-            if eval "$PKG_INSTALL" python3-pexpect; then
-                log_success "Installed pexpect via dnf/yum."
-            else
-                attempt_alternative_python_install
-            fi
-            ;;
-    esac
-}
-
-# Function: install_python_packages_pip
-# Purpose: Install Python packages using pip (when not externally managed)
-install_python_packages_pip() {
-    log_info "Installing Python packages via pip..."
-    
-    # Upgrade pip to latest version first
-    log_step "Upgrading pip to latest version..."
-    $PYTHON -m pip install --user --upgrade pip setuptools wheel
-    
-    # Install required packages
-    if $PYTHON -m pip install --user pexpect; then
-        log_success "Installed pexpect via pip --user."
-    else
-        log_warning "pip installation failed. Trying system package manager..."
-        install_python_packages_system
-    fi
-}
-
-# Function: attempt_alternative_python_install
-# Purpose: Try alternative methods when standard installation fails
-attempt_alternative_python_install() {
-    log_info "Attempting alternative Python package installation methods..."
-    
-    # Try pipx (if available)
-    if command -v pipx >/dev/null 2>&1 || eval "$PKG_INSTALL" pipx; then
-        log_info "Trying pipx installation..."
-        if pipx install pexpect; then
-            log_success "Installed pexpect via pipx."
-            return 0
-        fi
-    fi
-    
-    # Last resort: break system packages (use with caution)
-    log_warning "Attempting pip installation with --break-system-packages..."
-    log_warning "This may cause conflicts with system packages."
-    
-    if $PYTHON -m pip install --user --break-system-packages pexpect; then
-        log_success "Installed pexpect with --break-system-packages."
-    else
-        log_error "Failed to install pexpect via all available methods."
+        log_error "Failed to install Python dependencies via all available methods."
         log_error "Please install python3-pexpect manually using your package manager."
         exit 1
+    fi
+}
+
+# Function: check_python_package_availability
+# Purpose: Check if required Python packages are available
+check_python_package_availability() {
+    log_step "Checking Python package availability..."
+    
+    # Test if pexpect can be imported
+    if $PYTHON -c "import pexpect; print('pexpect version:', pexpect.__version__)" 2>/dev/null; then
+        log_info "Python pexpect library is available via system packages."
+        return 0
+    else
+        log_info "Python pexpect library needs to be installed."
+        return 1
+    fi
+}
+
+# Function: install_python_via_venv
+# Purpose: Install Python packages in a virtual environment (recommended approach)
+install_python_via_venv() {
+    log_step "Attempting Python package installation via virtual environment..."
+    
+    local venv_dir="$INSTALL_DIR/python-venv"
+    
+    # Create virtual environment
+    if $PYTHON -m venv "$venv_dir" 2>/dev/null; then
+        log_info "Created virtual environment: $venv_dir"
+        
+        # Install packages in virtual environment
+        if "$venv_dir/bin/python" -m pip install pexpect; then
+            log_info "Installed pexpect in virtual environment."
+            
+            # Create a wrapper script for system-wide access
+            create_python_wrapper "$venv_dir"
+            return 0
+        else
+            log_warning "Failed to install packages in virtual environment."
+            rm -rf "$venv_dir"
+            return 1
+        fi
+    else
+        log_warning "Failed to create virtual environment."
+        return 1
+    fi
+}
+
+# Function: create_python_wrapper
+# Purpose: Create a wrapper to use the virtual environment Python
+create_python_wrapper() {
+    local venv_dir="$1"
+    local wrapper_script="$INSTALL_DIR/python-wrapper"
+    
+    log_step "Creating Python wrapper script..."
+    
+    cat > "$wrapper_script" << EOF
+#!/bin/bash
+# Python wrapper for Mininet installation
+# This ensures the virtual environment Python is used
+export PATH="$venv_dir/bin:\$PATH"
+exec "$venv_dir/bin/python" "\$@"
+EOF
+    
+    chmod +x "$wrapper_script"
+    
+    # Update PYTHON variable to use wrapper
+    PYTHON="$wrapper_script"
+    
+    log_info "Python wrapper created: $wrapper_script"
+}
+
+# Function: install_python_via_pipx
+# Purpose: Install Python packages using pipx (if available)
+install_python_via_pipx() {
+    log_step "Attempting Python package installation via pipx..."
+    
+    # Try to install pipx if not available
+    if ! command -v pipx >/dev/null 2>&1; then
+        log_info "Installing pipx..."
+        case $OS in
+            "Ubuntu"|"Debian"*)
+                if ! eval "$PKG_INSTALL" pipx; then
+                    log_warning "Failed to install pipx via package manager."
+                    return 1
+                fi
+                ;;
+            "Fedora"*|"CentOS"*|"Red Hat"*)
+                if ! eval "$PKG_INSTALL" pipx; then
+                    log_warning "Failed to install pipx via package manager."
+                    return 1
+                fi
+                ;;
+        esac
+    fi
+    
+    # Use pipx to install pexpect
+    if pipx install pexpect 2>/dev/null; then
+        log_info "Installed pexpect via pipx."
+        return 0
+    else
+        log_warning "Failed to install pexpect via pipx."
+        return 1
+    fi
+}
+
+# Function: install_python_with_break_system
+# Purpose: Last resort - install with --break-system-packages (with user confirmation)
+install_python_with_break_system() {
+    log_step "Last resort: attempting installation with --break-system-packages..."
+    
+    log_warning "This method may cause conflicts with system packages."
+    log_warning "It should only be used if other methods fail."
+    
+    # In non-interactive mode, skip this dangerous method
+    if [[ "${NON_INTERACTIVE:-false}" == true ]]; then
+        log_info "Skipping --break-system-packages in non-interactive mode."
+        return 1
+    fi
+    
+    echo -n "Proceed with --break-system-packages? (y/N): "
+    read -r confirm
+    
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        log_info "User declined --break-system-packages installation."
+        return 1
+    fi
+    
+    if $PYTHON -m pip install --user --break-system-packages pexpect; then
+        log_info "Installed pexpect with --break-system-packages."
+        return 0
+    else
+        log_error "Failed to install pexpect even with --break-system-packages."
+        return 1
     fi
 }
 
