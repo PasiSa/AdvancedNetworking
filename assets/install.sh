@@ -280,8 +280,8 @@ install_system_dependencies() {
     
     # Define common packages needed across all distributions
     local -a common_packages=(
-        "git"                    # Version control for source code
-        "build-essential"        # Compilation tools (gcc, make, etc.) [Ubuntu/Debian]
+        "git"                   # Version control for source code
+        "build-essential"       # Compilation tools (gcc, make, etc.) [Ubuntu/Debian]
         "autoconf"              # GNU autotools for building software
         "automake"              # Makefile generator
         "libtool"               # Library building helper
@@ -330,6 +330,7 @@ install_system_dependencies() {
             eval "$PKG_INSTALL" \
                 git build-essential autoconf automake libtool pkg-config \
                 python3 python3-pip python3-dev python3-setuptools python3-venv python-is-python3 \
+                cgroup-tools cgroupfs-mount \
                 gcc make socat psmisc xterm openssh-client iperf \
                 iproute2 net-tools ethtool help2man \
                 libssl-dev libffi-dev telnet
@@ -345,7 +346,7 @@ install_system_dependencies() {
                 iproute net-tools ethtool help2man \
                 openssl-devel libffi-devel telnet
             ;;
-            
+
             # Ensure 'python' command exists
             if ! command -v python >/dev/null 2>&1; then
                 log_info "Setting 'python' to point to python3 via alternatives..."
