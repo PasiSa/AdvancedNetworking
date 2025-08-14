@@ -278,76 +278,72 @@ install_system_dependencies() {
     
     log_step "Installing core development tools and libraries..."
     
-    # Define common packages needed across all distributions
-    local -a common_packages=(
-        "git"                   # Version control for source code
-        "build-essential"       # Compilation tools (gcc, make, etc.) [Ubuntu/Debian]
-        "autoconf"              # GNU autotools for building software
-        "automake"              # Makefile generator
-        "libtool"               # Library building helper
-        "pkg-config"            # Package configuration tool
-    )
-    
-    # Python-related packages
-    local -a python_packages=(
-        "python3"               # Python interpreter
-        "python3-pip"           # Python package installer
-        "python3-dev"           # Python development headers
-        "python3-setuptools"    # Python package building tools
-        "python3-venv"          # Virtual environment support
-    )
-    
-    # Networking and system tools
-    local -a networking_packages=(
-        "socat"                 # Socket communication tool
-        "psmisc"                # Process utilities (killall, etc.)
-        "xterm"                 # Terminal emulator for Mininet
-        "openssh-client"        # SSH client for remote access
-        "iperf"                 # Network performance testing tool
-        "iproute2"              # Modern networking tools (ip command)
-        "net-tools"             # Traditional networking tools (ifconfig, etc.)
-        "ethtool"               # Ethernet device configuration
-        "telnet"                # Telnet client for testing
-    )
-    
-    # Security and encryption libraries
-    local -a security_packages=(
-        "libssl-dev"            # OpenSSL development libraries
-        "libffi-dev"            # Foreign function interface library
-    )
-    
-    # Documentation tools
-    local -a doc_packages=(
-        "help2man"              # Automatic manual page generation
-    )
-    
     # Install packages based on operating system
     case $OS in
         "Ubuntu"|"Debian"*)
             log_info "Installing packages for Debian/Ubuntu..."
             
-            # Combine all package arrays and install
-            eval "$PKG_INSTALL" \
-                git build-essential autoconf automake libtool pkg-config \
-                python3 python3-pip python3-dev python3-setuptools python3-venv python-is-python3 \
-                cgroup-tools cgroupfs-mount \
-                gcc make socat psmisc xterm openssh-client iperf \
-                iproute2 net-tools ethtool help2man \
-                libssl-dev libffi-dev telnet
+            # Add Debian/Ubuntu specific packages
+            local -a debian_specific=(
+                "build-essential"       # Compilation tools (gcc, make, etc.)
+                "python-is-python3"     # Makes 'python' point to python3
+                "python3-pexpect"       # Python pexpect library
+                "cgroup-tools"          # Control group tools
+                "cgroupfs-mount"        # Control group filesystem mounting
+                "openssh-client"        # SSH client
+                "libssl-dev"            # OpenSSL development libraries
+                "libffi-dev"            # Foreign function interface library
+                "iputils-ping"          # Ping utility
+            )
+            
+            # Combine all package arrays
+            local all_packages=(
+                "${common_packages[@]}"
+                "${python_packages[@]}"
+                "${networking_packages[@]}"
+                "${security_packages[@]}"
+                "${doc_packages[@]}"
+                "${debian_specific[@]}"
+            )
+            
+            # Install all packages
+            eval "$PKG_INSTALL" "${all_packages[@]}"
             ;;
         "Fedora"*|"CentOS"*|"Red Hat"*)
             log_info "Installing packages for Red Hat family..."
             
-            # Package names differ slightly on Red Hat family
-            eval "$PKG_INSTALL" \
-                git gcc make autoconf automake libtool pkgconfig \
-                python3 python3-pip python3-devel python3-setuptools python3-venv \
-                socat psmisc xterm openssh-clients iperf \
-                iproute net-tools ethtool help2man \
-                openssl-devel libffi-devel telnet
+            # Add Red Hat specific packages (different package names)
+            local -a redhat_specific=(
+                "gcc"                   # C compiler (separate from make tools)
+                "make"                  # Make build tool
+                "pkgconfig"             # Package config (different name than pkg-config)
+                "python3-devel"         # Python development headers (different name)
+                "python3-pexpect"       # Python pexpect library
+                "openssh-clients"       # SSH client (different name)
+                "openssl-devel"         # OpenSSL development libraries (different name)
+                "libffi-devel"          # Foreign function interface library (different name)
+            )
+            
+            # For Red Hat, we need to filter out packages that don't exist or have different names
+            local -a redhat_common=("git" "autoconf" "automake" "libtool")
+            local -a redhat_python=("python3" "python3-pip" "python3-setuptools" "python3-venv")
+            local -a redhat_networking=("socat" "psmisc" "xterm" "iperf" "iproute" "net-tools" "ethtool" "telnet")
+            local -a redhat_docs=("help2man")
+            
+            # Combine Red Hat compatible packages
+            local all_packages=(
+                "${redhat_common[@]}"
+                "${redhat_python[@]}"
+                "${redhat_networking[@]}"
+                "${redhat_docs[@]}"
+                "${redhat_specific[@]}"
+            )
+            
+            # Install all packages
+            eval "$PKG_INSTALL" "${all_packages[@]}"
             ;;
     esac
-
+    
     # Ensure 'python' command exists
     if ! command -v python >/dev/null 2>&1; then
         log_info "Setting 'python' to point to python3 via alternatives..."

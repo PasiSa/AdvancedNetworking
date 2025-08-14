@@ -115,7 +115,7 @@ The installation typically takes 10-15 minutes depending on your system and inte
 Now Mininet should work. You can try it using one of our simple network
 scripts:
 
-    sudo aalto/simple_topo.py --delay=200ms
+    sudo INSTALL_DIR/mininet/aalto/simple_topo.py --delay=200ms
 
 The script implements a simple topology with four nodes (titled "lh1", "lh2",
 "rh1" and "rh2"), two routers, connected with a bottleneck link that has one-way
