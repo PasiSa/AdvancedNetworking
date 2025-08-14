@@ -346,14 +346,13 @@ install_system_dependencies() {
                 iproute net-tools ethtool help2man \
                 openssl-devel libffi-devel telnet
             ;;
-
-            # Ensure 'python' command exists
-            if ! command -v python >/dev/null 2>&1; then
-                log_info "Setting 'python' to point to python3 via alternatives..."
-                sudo alternatives --install /usr/bin/python python /usr/bin/python3 1
-            fi
-            ;;
     esac
+    
+    # Ensure 'python' command exists
+    if ! command -v python >/dev/null 2>&1; then
+        log_info "Setting 'python' to point to python3 via alternatives..."
+        sudo alternatives --install /usr/bin/python python /usr/bin/python3 1
+    fi
     
     log_success "System dependencies installed successfully."
 }
