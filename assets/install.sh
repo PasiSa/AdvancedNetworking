@@ -1280,7 +1280,7 @@ test_mininet_python_module() {
 test_openflow_utilities() {
     log_step "Testing OpenFlow utilities..."
 
-    local openflow_controller="$INSTALL_DIR/openflow/utilities/ovs-controller"
+    local openflow_controller="/usr/local/bin/controller"
 
     if [[ -f "$openflow_controller" ]]; then
         log_info "OpenFlow controller found: $openflow_controller"
