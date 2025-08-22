@@ -257,35 +257,40 @@ validate_and_create_directory() {
 detect_operating_system() {
     log_section "Operating System Detection"
     
-    # Check for the standard os-release file (available on most modern Linux)
+    # Primary method: /etc/os-release
     if [[ -f /etc/os-release ]]; then
-        # Source the file to get OS information
-        # shellcheck source=/dev/null
-        source /etc/os-release
-        OS="$NAME"
-        VER="$VERSION_ID"
+        # Safely source the file
+        if source /etc/os-release 2>/dev/null; then
+            OS="${NAME:-Unknown}"
+            VER="${VERSION_ID:-Unknown}"
+        else
+            log_warning "Failed to parse /etc/os-release, trying fallback methods"
+            detect_os_fallback
+        fi
     else
-        log_error "Cannot detect operating system."
-        log_error "This script requires a modern Linux distribution with /etc/os-release."
-        exit 1
+        detect_os_fallback
     fi
     
-    log_info "Detected operating system: $OS $VER"
+    log_info "Detected: $OS $VER"
+    validate_supported_os
+}
+
+validate_supported_os() {
+    log_step "Validating OS compatibility..."
     
-    # Set package manager commands based on detected OS
     case $OS in
         "Ubuntu"|"Debian"*)
-            log_info "Using Debian/Ubuntu package management (apt)"
+            log_success "Supported OS: $OS"
             PKG_UPDATE="sudo apt-get update"
             PKG_INSTALL="sudo DEBIAN_FRONTEND=noninteractive apt-get install -y"
             ;;
         "Fedora"*)
-            log_info "Using Fedora package management (dnf)"
+            log_success "Supported OS: $OS"
             PKG_UPDATE="sudo dnf check-update || true"
             PKG_INSTALL="sudo dnf install -y"
             ;;
         "CentOS"*|"Red Hat"*)
-            log_info "Using Red Hat family package management"
+            log_success "Supported OS: $OS"
             # Use yum for older versions, dnf for newer
             if command -v dnf >/dev/null 2>&1; then
                 PKG_UPDATE="sudo dnf check-update || true"
@@ -298,12 +303,73 @@ detect_operating_system() {
         *)
             log_error "Unsupported operating system: $OS"
             log_error "This script supports Ubuntu, Debian, Fedora, CentOS, and Red Hat."
-            log_error "You may need to adapt the package installation commands."
-            exit 1
+            
+            # Provide helpful suggestions
+            echo
+            log_info "Supported alternatives:"
+            echo "  • Ubuntu 18.04+ or Debian 10+"
+            echo "  • Fedora 30+"
+            echo "  • CentOS 7+ or Red Hat Enterprise Linux 7+"
+            echo
+            log_info "You may be able to adapt this script by:"
+            echo "  • Modifying package manager commands for your distribution"
+            echo "  • Installing equivalent packages manually"
+            echo "  • Using a supported distribution in a virtual machine"
+            
+            return 1
             ;;
     esac
     
-    log_success "Operating system detection completed."
+    # Additional version-specific checks
+    case $OS in
+        "Ubuntu")
+            # Check Ubuntu version (require 18.04+)
+            if [[ -n "$VER" ]]; then
+                local major_ver
+                major_ver=$(echo "$VER" | cut -d'.' -f1)
+                if [[ $major_ver -lt 18 ]]; then
+                    log_warning "Ubuntu $VER detected. Ubuntu 18.04+ recommended."
+                    log_warning "Older versions may have compatibility issues."
+                fi
+            fi
+            ;;
+        "Debian"*)
+            # Check Debian version (require 10+)
+            if [[ -n "$VER" ]] && [[ $VER -lt 10 ]]; then
+                log_warning "Debian $VER detected. Debian 10+ recommended."
+                log_warning "Older versions may lack required packages."
+            fi
+            ;;
+        "CentOS"*)
+            # Check CentOS version (require 7+)
+            if [[ -n "$VER" ]]; then
+                local major_ver
+                major_ver=$(echo "$VER" | cut -d'.' -f1)
+                if [[ $major_ver -lt 7 ]]; then
+                    log_error "CentOS $VER is too old. CentOS 7+ required."
+                    return 1
+                fi
+            fi
+            ;;
+    esac
+    
+    return 0
+
+detect_os_fallback() {
+    # Fallback detection methods
+    if [[ -f /etc/debian_version ]]; then
+        OS="Debian"
+        VER=$(cat /etc/debian_version)
+    elif [[ -f /etc/redhat-release ]]; then
+        OS="Red Hat"
+        VER=$(cat /etc/redhat-release | cut -d' ' -f3)
+    elif command -v lsb_release >/dev/null 2>&1; then
+        OS=$(lsb_release -si)
+        VER=$(lsb_release -sr)
+    else
+        log_error "Cannot detect operating system"
+        exit 1
+    fi
 }
 
 # ------------------------------------------------------------------------------
