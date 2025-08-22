@@ -107,6 +107,49 @@ log_step() {
 }
 
 # ------------------------------------------------------------------------------
+# RETRY MECHANISM FOR UNRELIABLE OPERATIONS
+# ------------------------------------------------------------------------------
+
+# Function: install_with_retry
+# Purpose: Execute commands with retry logic for transient failures
+# Parameters: $1 - command to execute, $2 - operation description
+# Educational note: This shows how to handle network timeouts and temporary failures
+install_with_retry() {
+    local max_attempts=3
+    local attempt=1
+    local command="$1"
+    local operation_name="$2"
+    
+    while [[ $attempt -le $max_attempts ]]; do
+        log_info "Attempting $operation_name (attempt $attempt/$max_attempts)"
+        
+        # Temporarily disable 'set -e' for this command
+        set +e
+        eval "$command"
+        local exit_code=$?
+        set -e
+        
+        if [[ $exit_code -eq 0 ]]; then
+            log_success "$operation_name completed successfully"
+            return 0
+        fi
+        
+        log_warning "$operation_name failed on attempt $attempt (exit code: $exit_code)"
+        
+        if [[ $attempt -lt $max_attempts ]]; then
+            local wait_time=$((attempt * 2))  # Exponential backoff: 2s, 4s
+            log_info "Waiting ${wait_time}s before retry..."
+            sleep $wait_time
+        fi
+        
+        ((attempt++))
+    done
+    
+    log_error "$operation_name failed after $max_attempts attempts"
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # USER INTERACTION FUNCTIONS
 # ------------------------------------------------------------------------------
 
@@ -273,8 +316,13 @@ detect_operating_system() {
 install_system_dependencies() {
     log_section "System Dependencies Installation"
     
+    # Package repository update with retry (most failure-prone operation)
     log_step "Updating package repositories..."
-    eval "$PKG_UPDATE"
+    install_with_retry "$PKG_UPDATE" "Package repository update" || {
+        log_error "Failed to update package repositories after multiple attempts"
+        log_error "Please check your internet connection and try again"
+        exit 1
+    }
     
     log_step "Installing core development tools and libraries..."
     
@@ -283,71 +331,146 @@ install_system_dependencies() {
         "Ubuntu"|"Debian"*)
             log_info "Installing packages for Debian/Ubuntu..."
             
-            # Add Debian/Ubuntu specific packages
-            local -a debian_specific=(
+            # Define package groups for better error isolation
+            local -a core_packages=(
                 "build-essential"       # Compilation tools (gcc, make, etc.)
-                "python-is-python3"     # Makes 'python' point to python3
-                "python3-pexpect"       # Python pexpect library
-                "cgroup-tools"          # Control group tools
-                "cgroupfs-mount"        # Control group filesystem mounting
-                "openssh-client"        # SSH client
-                "libssl-dev"            # OpenSSL development libraries
-                "libffi-dev"            # Foreign function interface library
-                "iputils-ping"          # Ping utility
+                "git"                  # Version control
+                "autoconf"             # Auto configuration
+                "automake"             # Auto make
+                "libtool"              # Library tool
             )
             
-            # Combine all package arrays
-            local all_packages=(
-                "${common_packages[@]}"
-                "${python_packages[@]}"
-                "${networking_packages[@]}"
-                "${security_packages[@]}"
-                "${doc_packages[@]}"
-                "${debian_specific[@]}"
+            local -a python_packages=(
+                "python-is-python3"    # Makes 'python' point to python3
+                "python3"              # Python interpreter
+                "python3-pip"          # Python package installer
+                "python3-dev"          # Python development headers
+                "python3-pexpect"      # Python pexpect library
+                "python3-setuptools"   # Python setup tools
+                "python3-venv"         # Python virtual environment
             )
             
-            # Install all packages
-            eval "$PKG_INSTALL" "${all_packages[@]}"
+            local -a networking_packages=(
+                "socat"                # Socket cat utility
+                "psmisc"               # Process utilities
+                "xterm"                # Terminal emulator
+                "iperf"                # Network performance tool
+                "iproute2"             # IP routing utilities
+                "net-tools"            # Network tools
+                "ethtool"              # Ethernet tool
+                "telnet"               # Telnet client
+                "openssh-client"       # SSH client
+                "iputils-ping"         # Ping utility
+            )
+            
+            local -a development_packages=(
+                "libssl-dev"           # OpenSSL development libraries
+                "libffi-dev"           # Foreign function interface library
+                "cgroup-tools"         # Control group tools
+                "cgroupfs-mount"       # Control group filesystem mounting
+                "help2man"             # Help to manual converter
+            )
+            
+            # Install package groups with retry
+            install_with_retry "$PKG_INSTALL ${core_packages[*]}" \
+                              "Core development packages" || {
+                log_error "Failed to install core development packages"
+                exit 1
+            }
+            
+            install_with_retry "$PKG_INSTALL ${python_packages[*]}" \
+                              "Python development packages" || {
+                log_error "Failed to install Python packages"
+                exit 1
+            }
+            
+            install_with_retry "$PKG_INSTALL ${networking_packages[*]}" \
+                              "Networking utilities" || {
+                log_error "Failed to install networking packages"
+                exit 1
+            }
+            
+            install_with_retry "$PKG_INSTALL ${development_packages[*]}" \
+                              "Development libraries" || {
+                log_error "Failed to install development libraries"
+                exit 1
+            }
             ;;
         "Fedora"*|"CentOS"*|"Red Hat"*)
             log_info "Installing packages for Red Hat family..."
             
-            # Add Red Hat specific packages (different package names)
-            local -a redhat_specific=(
-                "gcc"                   # C compiler (separate from make tools)
-                "make"                  # Make build tool
-                "pkgconfig"             # Package config (different name than pkg-config)
-                "python3-devel"         # Python development headers (different name)
-                "python3-pexpect"       # Python pexpect library
-                "openssh-clients"       # SSH client (different name)
-                "openssl-devel"         # OpenSSL development libraries (different name)
-                "libffi-devel"          # Foreign function interface library (different name)
+            # Define Red Hat package groups
+            local -a redhat_core=(
+                "gcc"                  # C compiler
+                "make"                 # Make build tool
+                "git"                  # Version control
+                "autoconf"             # Auto configuration
+                "automake"             # Auto make
+                "libtool"              # Library tool
+                "pkgconfig"            # Package config
             )
             
-            # For Red Hat, we need to filter out packages that don't exist or have different names
-            local -a redhat_common=("git" "autoconf" "automake" "libtool")
-            local -a redhat_python=("python3" "python3-pip" "python3-setuptools" "python3-venv")
-            local -a redhat_networking=("socat" "psmisc" "xterm" "iperf" "iproute" "net-tools" "ethtool" "telnet")
-            local -a redhat_docs=("help2man")
-            
-            # Combine Red Hat compatible packages
-            local all_packages=(
-                "${redhat_common[@]}"
-                "${redhat_python[@]}"
-                "${redhat_networking[@]}"
-                "${redhat_docs[@]}"
-                "${redhat_specific[@]}"
+            local -a redhat_python=(
+                "python3"              # Python interpreter
+                "python3-pip"          # Python package installer
+                "python3-devel"        # Python development headers
+                "python3-pexpect"      # Python pexpect library
+                "python3-setuptools"   # Python setup tools
+                "python3-venv"         # Python virtual environment
             )
             
-            # Install all packages
-            eval "$PKG_INSTALL" "${all_packages[@]}"
+            local -a redhat_networking=(
+                "socat"                # Socket cat utility
+                "psmisc"               # Process utilities
+                "xterm"                # Terminal emulator
+                "iperf"                # Network performance tool
+                "iproute"              # IP routing utilities
+                "net-tools"            # Network tools
+                "ethtool"              # Ethernet tool
+                "telnet"               # Telnet client
+                "openssh-clients"      # SSH client (different name)
+            )
+            
+            local -a redhat_development=(
+                "openssl-devel"        # OpenSSL development libraries
+                "libffi-devel"         # Foreign function interface library
+                "help2man"             # Help to manual converter
+            )
+            
+            # Install Red Hat package groups with retry
+            install_with_retry "$PKG_INSTALL ${redhat_core[*]}" \
+                              "Core development packages" || {
+                log_error "Failed to install core development packages"
+                exit 1
+            }
+            
+            install_with_retry "$PKG_INSTALL ${redhat_python[*]}" \
+                              "Python development packages" || {
+                log_error "Failed to install Python packages"
+                exit 1
+            }
+            
+            install_with_retry "$PKG_INSTALL ${redhat_networking[*]}" \
+                              "Networking utilities" || {
+                log_error "Failed to install networking packages"
+                exit 1
+            }
+            
+            install_with_retry "$PKG_INSTALL ${redhat_development[*]}" \
+                              "Development libraries" || {
+                log_error "Failed to install development libraries"
+                exit 1
+            }
             ;;
     esac
     
-    # Ensure 'python' command exists
+    # Ensure 'python' command exists (with retry for alternatives command)
     if ! command -v python >/dev/null 2>&1; then
-        log_info "Setting 'python' to point to python3 via alternatives..."
-        sudo alternatives --install /usr/bin/python python /usr/bin/python3 1
+        log_step "Setting 'python' to point to python3 via alternatives..."
+        install_with_retry "sudo alternatives --install /usr/bin/python python /usr/bin/python3 1" \
+                          "Python alternatives setup" || {
+            log_warning "Failed to set python alternatives, but continuing..."
+        }
     fi
     
     log_success "System dependencies installed successfully."
@@ -546,7 +669,7 @@ clone_repositories() {
 }
 
 # Function: clone_or_update_repository
-# Purpose: Clone a new repository or update existing one
+# Purpose: Clone a new repository or update existing one with retry logic
 # Parameters: $1 - directory name, $2 - repository URL, $3 - description
 clone_or_update_repository() {
     local dir_name="$1"
@@ -558,21 +681,28 @@ clone_or_update_repository() {
     
     if [[ ! -d "$dir_name" ]]; then
         log_info "Cloning $dir_name from $repo_url..."
-        if git clone "$repo_url" "$dir_name"; then
-            log_success "Successfully cloned $dir_name repository."
-        else
-            log_error "Failed to clone $dir_name repository."
-            log_error "Please check your internet connection and repository URL."
+        
+        # Git clone with retry - handles network timeouts and DNS issues
+        install_with_retry "git clone '$repo_url' '$dir_name'" \
+                          "Cloning $dir_name repository" || {
+            log_error "Failed to clone $dir_name repository after multiple attempts"
+            log_error "Please check your internet connection and repository URL: $repo_url"
             exit 1
-        fi
+        }
+        
+        log_success "Successfully cloned $dir_name repository."
     else
         log_info "Repository $dir_name already exists. Updating..."
-        if (cd "$dir_name" && git pull); then
-            log_success "Successfully updated $dir_name repository."
-        else
-            log_warning "Failed to update $dir_name repository."
+        
+        # Git pull with retry - handles network issues during updates
+        install_with_retry "(cd '$dir_name' && git pull)" \
+                          "Updating $dir_name repository" || {
+            log_warning "Failed to update $dir_name repository after multiple attempts"
             log_warning "Continuing with existing version..."
-        fi
+            log_info "You may want to manually update later with: cd $dir_name && git pull"
+        }
+        
+        log_success "Repository $dir_name processed successfully."
     fi
 }
 
@@ -581,8 +711,8 @@ clone_or_update_repository() {
 # ------------------------------------------------------------------------------
 
 # Function: install_openflow
-# Purpose: Compile and install OpenFlow reference implementation
-# Educational note: This shows the typical autotools build process
+# Purpose: Compile and install OpenFlow reference implementation with retry logic
+# Educational note: This shows the typical autotools build process with error handling
 install_openflow() {
     log_section "OpenFlow Reference Implementation Installation"
     
@@ -591,49 +721,53 @@ install_openflow() {
     
     cd "$INSTALL_DIR/openflow"
     
-    # Step 1: Generate configure script from configure.ac
+    # Step 1: Generate configure script from configure.ac (can fail due to missing tools)
     log_step "Generating build configuration..."
-    if ./boot.sh; then
-        log_success "Build configuration generated."
-    else
-        log_error "Failed to generate build configuration."
+    install_with_retry "./boot.sh" "OpenFlow build configuration generation" || {
+        log_error "Failed to generate build configuration"
+        log_error "This may indicate missing autotools packages"
         exit 1
-    fi
+    }
     
-    # Step 2: Configure the build system
+    # Step 2: Configure the build system (can fail due to missing dependencies)
     log_step "Configuring build system..."
-    if ./configure; then
-        log_success "Build system configured."
-    else
-        log_error "Failed to configure build system."
+    install_with_retry "./configure" "OpenFlow build system configuration" || {
+        log_error "Failed to configure build system"
+        log_error "This may indicate missing development libraries"
         exit 1
-    fi
+    }
     
-    # Step 3: Compile the source code
+    # Step 3: Compile the source code (can fail due to compiler errors)
     log_step "Compiling OpenFlow (this may take a few minutes)..."
     local cpu_cores
     cpu_cores=$(nproc)
     log_info "Using $cpu_cores CPU cores for parallel compilation."
     
-    if make -j"$cpu_cores"; then
-        log_success "OpenFlow compilation completed."
-    else
-        log_error "OpenFlow compilation failed."
-        exit 1
-    fi
+    install_with_retry "make -j$cpu_cores" "OpenFlow compilation" || {
+        log_error "OpenFlow compilation failed"
+        log_info "Trying single-threaded compilation as fallback..."
+        
+        # Fallback to single-threaded compilation
+        install_with_retry "make clean && make" "OpenFlow single-threaded compilation" || {
+            log_error "OpenFlow compilation failed even with single-threaded build"
+            log_error "Please check the compilation errors above"
+            exit 1
+        }
+    }
     
-    # Step 4: Install compiled binaries
+    # Step 4: Install compiled binaries (can fail due to permission issues)
     log_step "Installing OpenFlow binaries..."
-    if sudo make install; then
-        log_success "OpenFlow binaries installed."
-    else
-        log_error "Failed to install OpenFlow binaries."
+    install_with_retry "sudo make install" "OpenFlow binary installation" || {
+        log_error "Failed to install OpenFlow binaries"
+        log_error "Please check sudo permissions and disk space"
         exit 1
-    fi
+    }
     
-    # Step 5: Update system library cache
+    # Step 5: Update system library cache (usually reliable, but can fail)
     log_step "Updating system library cache..."
-    sudo ldconfig
+    install_with_retry "sudo ldconfig" "System library cache update" || {
+        log_warning "Failed to update library cache, but continuing..."
+    }
     
     log_success "OpenFlow installation completed successfully."
 }
@@ -776,7 +910,7 @@ install_additional_tools() {
 }
 
 # Function: install_pox_controller
-# Purpose: Install POX SDN controller for OpenFlow experiments
+# Purpose: Install POX SDN controller for OpenFlow experiments with retry logic
 install_pox_controller() {
     log_step "Installing POX SDN controller..."
     
@@ -785,19 +919,21 @@ install_pox_controller() {
     # Clone POX repository if not present
     if [[ ! -d "pox" ]]; then
         log_info "Cloning POX controller from $POX_REPO..."
-        if git clone "$POX_REPO"; then
-            log_success "POX controller cloned successfully."
-        else
-            log_error "Failed to clone POX controller."
+        
+        install_with_retry "git clone '$POX_REPO'" "POX controller cloning" || {
+            log_error "Failed to clone POX controller after multiple attempts"
+            log_error "Please check your internet connection and repository URL: $POX_REPO"
             return 1
-        fi
+        }
+        
+        log_success "POX controller cloned successfully."
     else
         log_info "POX controller already present. Updating..."
-        if (cd pox && git pull); then
-            log_success "POX controller updated."
-        else
-            log_warning "Failed to update POX controller."
-        fi
+        
+        install_with_retry "(cd pox && git pull)" "POX controller update" || {
+            log_warning "Failed to update POX controller after multiple attempts"
+            log_warning "Continuing with existing version..."
+        }
     fi
     
     log_info "POX controller available at: $INSTALL_DIR/pox"
