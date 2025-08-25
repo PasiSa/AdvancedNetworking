@@ -5,9 +5,9 @@
 # ==============================================================================
 #
 # PURPOSE:
-# This script automates the installation of Mininet, OpenFlow, and related 
-# networking tools for the Advanced Networking course. It uses maintained 
-# forks of the original repositories since the upstream versions are no 
+# This script automates the installation of Mininet, OpenFlow, and related
+# networking tools for the Advanced Networking course. It uses maintained
+# forks of the original repositories since the upstream versions are no
 # longer actively maintained.
 #
 # WHAT THIS SCRIPT INSTALLS:
@@ -43,16 +43,16 @@ set -o pipefail
 # Students can modify these to use different repositories or change paths.
 
 # Repository URLs - Using maintained forks instead of abandoned originals
-readonly MININET_REPO="https://github.com/kctong529/mininet.git"
-readonly OPENFLOW_REPO="https://github.com/kctong529/openflow.git"
-readonly POX_REPO="https://github.com/noxrepo/pox.git"
+MININET_REPO="https://github.com/kctong529/mininet.git"
+OPENFLOW_REPO="https://github.com/kctong529/openflow.git"
+POX_REPO="https://github.com/noxrepo/pox.git"
 
 # Installation paths
 readonly DEFAULT_INSTALL_DIR="${HOME}/mininet-dev"
 INSTALL_DIR=""  # Will be set by user input or command line arguments
 
 # Python interpreter to use (allows flexibility for different systems)
-readonly PYTHON="${PYTHON:-python3}"
+PYTHON="${PYTHON:-python3}"
 
 # Package manager commands (will be set based on detected OS)
 PKG_UPDATE=""
@@ -107,6 +107,49 @@ log_step() {
 }
 
 # ------------------------------------------------------------------------------
+# RETRY MECHANISM FOR UNRELIABLE OPERATIONS
+# ------------------------------------------------------------------------------
+
+# Function: install_with_retry
+# Purpose: Execute commands with retry logic for transient failures
+# Parameters: $1 - command to execute, $2 - operation description
+# Educational note: This shows how to handle network timeouts and temporary failures
+install_with_retry() {
+    local max_attempts=3
+    local attempt=1
+    local command="$1"
+    local operation_name="$2"
+
+    while [[ $attempt -le $max_attempts ]]; do
+        log_info "Attempting $operation_name (attempt $attempt/$max_attempts)"
+
+        # Temporarily disable 'set -e' for this command
+        set +e
+        eval "$command"
+        local exit_code=$?
+        set -e
+
+        if [[ $exit_code -eq 0 ]]; then
+            log_success "$operation_name completed successfully"
+            return 0
+        fi
+
+        log_warning "$operation_name failed on attempt $attempt (exit code: $exit_code)"
+
+        if [[ $attempt -lt $max_attempts ]]; then
+            local wait_time=$((attempt * 2))  # Exponential backoff: 2s, 4s
+            log_info "Waiting ${wait_time}s before retry..."
+            sleep $wait_time
+        fi
+
+        ((attempt++))
+    done
+
+    log_error "$operation_name failed after $max_attempts attempts"
+    return 1
+}
+
+# ------------------------------------------------------------------------------
 # USER INTERACTION FUNCTIONS
 # ------------------------------------------------------------------------------
 
@@ -115,7 +158,7 @@ log_step() {
 # Educational note: This shows how to handle user input validation in bash
 prompt_install_directory() {
     log_section "Installation Directory Configuration"
-    
+
     echo "This script will install Mininet and related tools."
     echo "Choose your installation directory:"
     echo
@@ -124,11 +167,11 @@ prompt_install_directory() {
     echo "2) Custom location: Enter your own path"
     echo
     echo -n "Enter your choice (1-2) [Default: 1]: "
-    
+
     # Read user input with default fallback
     read -r choice
     choice=${choice:-1}  # If empty, default to 1
-    
+
     case $choice in
         1)
             INSTALL_DIR="$DEFAULT_INSTALL_DIR"
@@ -137,10 +180,10 @@ prompt_install_directory() {
         2)
             echo -n "Enter your custom installation path: "
             read -r custom_path
-            
+
             # Handle tilde expansion (~ to home directory)
             custom_path="${custom_path/#\~/$HOME}"
-            
+
             # Validate the custom path
             if [[ -z "$custom_path" ]]; then
                 log_warning "Empty path provided. Using default location."
@@ -155,7 +198,7 @@ prompt_install_directory() {
             INSTALL_DIR="$DEFAULT_INSTALL_DIR"
             ;;
     esac
-    
+
     # Validate and create the installation directory
     validate_and_create_directory "$INSTALL_DIR"
 }
@@ -165,9 +208,9 @@ prompt_install_directory() {
 # Parameter: $1 - Directory path to validate
 validate_and_create_directory() {
     local dir_path="$1"
-    
+
     log_step "Validating installation directory: $dir_path"
-    
+
     # Check if directory exists and is not empty
     if [[ -d "$dir_path" ]] && [[ -n "$(ls -A "$dir_path" 2>/dev/null)" ]]; then
         log_warning "Directory '$dir_path' already exists and is not empty!"
@@ -175,20 +218,20 @@ validate_and_create_directory() {
         echo "Existing files will be preserved, but Git operations may fail."
         echo
         echo -n "Do you want to continue anyway? (y/N): "
-        
+
         read -r confirm
         if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
             log_info "Installation cancelled by user."
             exit 0
         fi
     fi
-    
+
     # Create directory if it doesn't exist
     if [[ ! -d "$dir_path" ]]; then
         echo -n "Directory doesn't exist. Create '$dir_path'? (Y/n): "
         read -r create_dir
         create_dir=${create_dir:-Y}  # Default to Yes
-        
+
         if [[ "$create_dir" =~ ^[Yy]$ ]]; then
             if mkdir -p "$dir_path"; then
                 log_success "Created directory: $dir_path"
@@ -213,36 +256,41 @@ validate_and_create_directory() {
 # Educational note: This shows how to handle multiple Linux distributions
 detect_operating_system() {
     log_section "Operating System Detection"
-    
-    # Check for the standard os-release file (available on most modern Linux)
+
+    # Primary method: /etc/os-release
     if [[ -f /etc/os-release ]]; then
-        # Source the file to get OS information
-        # shellcheck source=/dev/null
-        source /etc/os-release
-        OS="$NAME"
-        VER="$VERSION_ID"
+        # Safely source the file
+        if source /etc/os-release 2>/dev/null; then
+            OS="${NAME:-Unknown}"
+            VER="${VERSION_ID:-Unknown}"
+        else
+            log_warning "Failed to parse /etc/os-release, trying fallback methods"
+            detect_os_fallback
+        fi
     else
-        log_error "Cannot detect operating system."
-        log_error "This script requires a modern Linux distribution with /etc/os-release."
-        exit 1
+        detect_os_fallback
     fi
-    
-    log_info "Detected operating system: $OS $VER"
-    
-    # Set package manager commands based on detected OS
+
+    log_info "Detected: $OS $VER"
+    validate_supported_os
+}
+
+validate_supported_os() {
+    log_step "Validating OS compatibility..."
+
     case $OS in
         "Ubuntu"|"Debian"*)
-            log_info "Using Debian/Ubuntu package management (apt)"
+            log_success "Supported OS: $OS"
             PKG_UPDATE="sudo apt-get update"
             PKG_INSTALL="sudo DEBIAN_FRONTEND=noninteractive apt-get install -y"
             ;;
         "Fedora"*)
-            log_info "Using Fedora package management (dnf)"
+            log_success "Supported OS: $OS"
             PKG_UPDATE="sudo dnf check-update || true"
             PKG_INSTALL="sudo dnf install -y"
             ;;
         "CentOS"*|"Red Hat"*)
-            log_info "Using Red Hat family package management"
+            log_success "Supported OS: $OS"
             # Use yum for older versions, dnf for newer
             if command -v dnf >/dev/null 2>&1; then
                 PKG_UPDATE="sudo dnf check-update || true"
@@ -255,12 +303,74 @@ detect_operating_system() {
         *)
             log_error "Unsupported operating system: $OS"
             log_error "This script supports Ubuntu, Debian, Fedora, CentOS, and Red Hat."
-            log_error "You may need to adapt the package installation commands."
-            exit 1
+
+            # Provide helpful suggestions
+            echo
+            log_info "Supported alternatives:"
+            echo "  • Ubuntu 18.04+ or Debian 10+"
+            echo "  • Fedora 30+"
+            echo "  • CentOS 7+ or Red Hat Enterprise Linux 7+"
+            echo
+            log_info "You may be able to adapt this script by:"
+            echo "  • Modifying package manager commands for your distribution"
+            echo "  • Installing equivalent packages manually"
+            echo "  • Using a supported distribution in a virtual machine"
+
+            return 1
             ;;
     esac
-    
-    log_success "Operating system detection completed."
+
+    # Additional version-specific checks
+    case $OS in
+        "Ubuntu")
+            # Check Ubuntu version (require 18.04+)
+            if [[ -n "$VER" ]]; then
+                local major_ver
+                major_ver=$(echo "$VER" | cut -d'.' -f1)
+                if [[ $major_ver -lt 18 ]]; then
+                    log_warning "Ubuntu $VER detected. Ubuntu 18.04+ recommended."
+                    log_warning "Older versions may have compatibility issues."
+                fi
+            fi
+            ;;
+        "Debian"*)
+            # Check Debian version (require 10+)
+            if [[ -n "$VER" ]] && [[ $VER -lt 10 ]]; then
+                log_warning "Debian $VER detected. Debian 10+ recommended."
+                log_warning "Older versions may lack required packages."
+            fi
+            ;;
+        "CentOS"*)
+            # Check CentOS version (require 7+)
+            if [[ -n "$VER" ]]; then
+                local major_ver
+                major_ver=$(echo "$VER" | cut -d'.' -f1)
+                if [[ $major_ver -lt 7 ]]; then
+                    log_error "CentOS $VER is too old. CentOS 7+ required."
+                    return 1
+                fi
+            fi
+            ;;
+    esac
+
+    return 0
+}
+
+detect_os_fallback() {
+    # Fallback detection methods
+    if [[ -f /etc/debian_version ]]; then
+        OS="Debian"
+        VER=$(cat /etc/debian_version)
+    elif [[ -f /etc/redhat-release ]]; then
+        OS="Red Hat"
+        VER=$(cat /etc/redhat-release | cut -d' ' -f3)
+    elif command -v lsb_release >/dev/null 2>&1; then
+        OS=$(lsb_release -si)
+        VER=$(lsb_release -sr)
+    else
+        log_error "Cannot detect operating system"
+        exit 1
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -272,81 +382,164 @@ detect_operating_system() {
 # Educational note: This shows the extensive dependencies needed for network tools
 install_system_dependencies() {
     log_section "System Dependencies Installation"
-    
+
+    # Package repository update with retry (most failure-prone operation)
     log_step "Updating package repositories..."
-    eval "$PKG_UPDATE"
-    
+    install_with_retry "$PKG_UPDATE" "Package repository update" || {
+        log_error "Failed to update package repositories after multiple attempts"
+        log_error "Please check your internet connection and try again"
+        exit 1
+    }
+
     log_step "Installing core development tools and libraries..."
-    
-    # Define common packages needed across all distributions
-    local -a common_packages=(
-        "git"                    # Version control for source code
-        "build-essential"        # Compilation tools (gcc, make, etc.) [Ubuntu/Debian]
-        "autoconf"              # GNU autotools for building software
-        "automake"              # Makefile generator
-        "libtool"               # Library building helper
-        "pkg-config"            # Package configuration tool
-    )
-    
-    # Python-related packages
-    local -a python_packages=(
-        "python3"               # Python interpreter
-        "python3-pip"           # Python package installer
-        "python3-dev"           # Python development headers
-        "python3-setuptools"    # Python package building tools
-        "python3-venv"          # Virtual environment support
-    )
-    
-    # Networking and system tools
-    local -a networking_packages=(
-        "socat"                 # Socket communication tool
-        "psmisc"                # Process utilities (killall, etc.)
-        "xterm"                 # Terminal emulator for Mininet
-        "openssh-client"        # SSH client for remote access
-        "iperf"                 # Network performance testing tool
-        "iproute2"              # Modern networking tools (ip command)
-        "net-tools"             # Traditional networking tools (ifconfig, etc.)
-        "ethtool"               # Ethernet device configuration
-        "telnet"                # Telnet client for testing
-    )
-    
-    # Security and encryption libraries
-    local -a security_packages=(
-        "libssl-dev"            # OpenSSL development libraries
-        "libffi-dev"            # Foreign function interface library
-    )
-    
-    # Documentation tools
-    local -a doc_packages=(
-        "help2man"              # Automatic manual page generation
-    )
-    
+
     # Install packages based on operating system
     case $OS in
         "Ubuntu"|"Debian"*)
             log_info "Installing packages for Debian/Ubuntu..."
-            
-            # Combine all package arrays and install
-            eval "$PKG_INSTALL" \
-                git build-essential autoconf automake libtool pkg-config \
-                python3 python3-pip python3-dev python3-setuptools python3-venv \
-                gcc make socat psmisc xterm openssh-client iperf \
-                iproute2 net-tools ethtool help2man \
-                libssl-dev libffi-dev telnet
+
+            # Define package groups for better error isolation
+            local -a core_packages=(
+                "build-essential"       # Compilation tools (gcc, make, etc.)
+                "git"                  # Version control
+                "autoconf"             # Auto configuration
+                "automake"             # Auto make
+                "libtool"              # Library tool
+            )
+
+            local -a python_packages=(
+                "python-is-python3"    # Makes 'python' point to python3
+                "python3"              # Python interpreter
+                "python3-pip"          # Python package installer
+                "python3-dev"          # Python development headers
+                "python3-pexpect"      # Python pexpect library
+                "python3-setuptools"   # Python setup tools
+                "python3-venv"         # Python virtual environment
+            )
+
+            local -a networking_packages=(
+                "socat"                # Socket cat utility
+                "psmisc"               # Process utilities
+                "xterm"                # Terminal emulator
+                "iperf"                # Network performance tool
+                "iproute2"             # IP routing utilities
+                "net-tools"            # Network tools
+                "ethtool"              # Ethernet tool
+                "telnet"               # Telnet client
+                "openssh-client"       # SSH client
+                "iputils-ping"         # Ping utility
+            )
+
+            local -a development_packages=(
+                "libssl-dev"           # OpenSSL development libraries
+                "libffi-dev"           # Foreign function interface library
+                "cgroup-tools"         # Control group tools
+                "cgroupfs-mount"       # Control group filesystem mounting
+                "help2man"             # Help to manual converter
+            )
+
+            # Install package groups with retry
+            install_with_retry "$PKG_INSTALL ${core_packages[*]}" \
+                              "Core development packages" || {
+                log_error "Failed to install core development packages"
+                exit 1
+            }
+
+            install_with_retry "$PKG_INSTALL ${python_packages[*]}" \
+                              "Python development packages" || {
+                log_error "Failed to install Python packages"
+                exit 1
+            }
+
+            install_with_retry "$PKG_INSTALL ${networking_packages[*]}" \
+                              "Networking utilities" || {
+                log_error "Failed to install networking packages"
+                exit 1
+            }
+
+            install_with_retry "$PKG_INSTALL ${development_packages[*]}" \
+                              "Development libraries" || {
+                log_error "Failed to install development libraries"
+                exit 1
+            }
             ;;
         "Fedora"*|"CentOS"*|"Red Hat"*)
             log_info "Installing packages for Red Hat family..."
-            
-            # Package names differ slightly on Red Hat family
-            eval "$PKG_INSTALL" \
-                git gcc make autoconf automake libtool pkgconfig \
-                python3 python3-pip python3-devel python3-setuptools python3-venv \
-                socat psmisc xterm openssh-clients iperf \
-                iproute net-tools ethtool help2man \
-                openssl-devel libffi-devel telnet
+
+            # Define Red Hat package groups
+            local -a redhat_core=(
+                "gcc"                  # C compiler
+                "make"                 # Make build tool
+                "git"                  # Version control
+                "autoconf"             # Auto configuration
+                "automake"             # Auto make
+                "libtool"              # Library tool
+                "pkgconfig"            # Package config
+            )
+
+            local -a redhat_python=(
+                "python3"              # Python interpreter
+                "python3-pip"          # Python package installer
+                "python3-devel"        # Python development headers
+                "python3-pexpect"      # Python pexpect library
+                "python3-setuptools"   # Python setup tools
+                "python3-venv"         # Python virtual environment
+            )
+
+            local -a redhat_networking=(
+                "socat"                # Socket cat utility
+                "psmisc"               # Process utilities
+                "xterm"                # Terminal emulator
+                "iperf"                # Network performance tool
+                "iproute"              # IP routing utilities
+                "net-tools"            # Network tools
+                "ethtool"              # Ethernet tool
+                "telnet"               # Telnet client
+                "openssh-clients"      # SSH client (different name)
+            )
+
+            local -a redhat_development=(
+                "openssl-devel"        # OpenSSL development libraries
+                "libffi-devel"         # Foreign function interface library
+                "help2man"             # Help to manual converter
+            )
+
+            # Install Red Hat package groups with retry
+            install_with_retry "$PKG_INSTALL ${redhat_core[*]}" \
+                              "Core development packages" || {
+                log_error "Failed to install core development packages"
+                exit 1
+            }
+
+            install_with_retry "$PKG_INSTALL ${redhat_python[*]}" \
+                              "Python development packages" || {
+                log_error "Failed to install Python packages"
+                exit 1
+            }
+
+            install_with_retry "$PKG_INSTALL ${redhat_networking[*]}" \
+                              "Networking utilities" || {
+                log_error "Failed to install networking packages"
+                exit 1
+            }
+
+            install_with_retry "$PKG_INSTALL ${redhat_development[*]}" \
+                              "Development libraries" || {
+                log_error "Failed to install development libraries"
+                exit 1
+            }
             ;;
     esac
-    
+
+    # Ensure 'python' command exists (with retry for alternatives command)
+    if ! command -v python >/dev/null 2>&1; then
+        log_step "Setting 'python' to point to python3 via alternatives..."
+        install_with_retry "sudo alternatives --install /usr/bin/python python /usr/bin/python3 1" \
+                          "Python alternatives setup" || {
+            log_warning "Failed to set python alternatives, but continuing..."
+        }
+    fi
+
     log_success "System dependencies installed successfully."
 }
 
@@ -355,99 +548,163 @@ install_system_dependencies() {
 # Educational note: This shows how to handle Python's "externally-managed-environment" error
 install_python_dependencies() {
     log_section "Python Dependencies Installation"
-    
-    log_step "Installing Python packages..."
-    
-    # List of required Python packages
-    local -a python_packages=(
-        "pexpect"               # Process automation library (required by Mininet)
-    )
-    
-    # Check if we're in an externally-managed Python environment
-    # This is common on newer Linux distributions to prevent conflicts
-    local externally_managed=false
-    
-    if $PYTHON -m pip install --user --dry-run pexpect 2>&1 | grep -q "externally-managed-environment"; then
-        externally_managed=true
-        log_warning "Detected externally-managed Python environment."
-        log_info "This is common on newer Linux distributions."
-    fi
-    
-    # Install Python packages using the most appropriate method
-    if [[ "$externally_managed" == true ]]; then
-        install_python_packages_system
-    else
-        install_python_packages_pip
-    fi
-    
-    log_success "Python dependencies installed successfully."
-}
 
-# Function: install_python_packages_system
-# Purpose: Install Python packages using system package manager
-install_python_packages_system() {
-    log_info "Installing Python packages via system package manager..."
-    
-    case $OS in
-        "Ubuntu"|"Debian"*)
-            if eval "$PKG_INSTALL" python3-pexpect; then
-                log_success "Installed pexpect via apt."
-            else
-                attempt_alternative_python_install
-            fi
-            ;;
-        "Fedora"*|"CentOS"*|"Red Hat"*)
-            if eval "$PKG_INSTALL" python3-pexpect; then
-                log_success "Installed pexpect via dnf/yum."
-            else
-                attempt_alternative_python_install
-            fi
-            ;;
-    esac
-}
+    log_step "Verifying Python package availability..."
 
-# Function: install_python_packages_pip
-# Purpose: Install Python packages using pip (when not externally managed)
-install_python_packages_pip() {
-    log_info "Installing Python packages via pip..."
-    
-    # Upgrade pip to latest version first
-    log_step "Upgrading pip to latest version..."
-    $PYTHON -m pip install --user --upgrade pip setuptools wheel
-    
-    # Install required packages
-    if $PYTHON -m pip install --user pexpect; then
-        log_success "Installed pexpect via pip --user."
-    else
-        log_warning "pip installation failed. Trying system package manager..."
-        install_python_packages_system
+    # Check if pexpect is available via system packages or already installed
+    if check_python_package_availability; then
+        log_success "All Python dependencies are available."
+        return 0
     fi
-}
 
-# Function: attempt_alternative_python_install
-# Purpose: Try alternative methods when standard installation fails
-attempt_alternative_python_install() {
-    log_info "Attempting alternative Python package installation methods..."
-    
-    # Try pipx (if available)
-    if command -v pipx >/dev/null 2>&1 || eval "$PKG_INSTALL" pipx; then
-        log_info "Trying pipx installation..."
-        if pipx install pexpect; then
-            log_success "Installed pexpect via pipx."
-            return 0
-        fi
-    fi
-    
-    # Last resort: break system packages (use with caution)
-    log_warning "Attempting pip installation with --break-system-packages..."
-    log_warning "This may cause conflicts with system packages."
-    
-    if $PYTHON -m pip install --user --break-system-packages pexpect; then
-        log_success "Installed pexpect with --break-system-packages."
+    # If system packages didn't work, try alternative methods
+    log_warning "System packages may not include all required Python dependencies."
+    log_info "Attempting alternative installation methods..."
+
+    # Try different installation approaches in order of preference
+    if install_python_via_venv; then
+        log_success "Python dependencies installed via virtual environment."
+    elif install_python_via_pipx; then
+        log_success "Python dependencies installed via pipx."
+    elif install_python_with_break_system; then
+        log_success "Python dependencies installed with --break-system-packages."
     else
-        log_error "Failed to install pexpect via all available methods."
+        log_error "Failed to install Python dependencies via all available methods."
         log_error "Please install python3-pexpect manually using your package manager."
         exit 1
+    fi
+}
+
+# Function: check_python_package_availability
+# Purpose: Check if required Python packages are available
+check_python_package_availability() {
+    log_step "Checking Python package availability..."
+
+    # Test if pexpect can be imported
+    if $PYTHON -c "import pexpect; print('pexpect version:', pexpect.__version__)" 2>/dev/null; then
+        log_info "Python pexpect library is available via system packages."
+        return 0
+    else
+        log_info "Python pexpect library needs to be installed."
+        return 1
+    fi
+}
+
+# Function: install_python_via_venv
+# Purpose: Install Python packages in a virtual environment (recommended approach)
+install_python_via_venv() {
+    log_step "Attempting Python package installation via virtual environment..."
+
+    local venv_dir="$INSTALL_DIR/python-venv"
+
+    # Create virtual environment
+    if $PYTHON -m venv "$venv_dir" 2>/dev/null; then
+        log_info "Created virtual environment: $venv_dir"
+
+        # Install packages in virtual environment
+        if "$venv_dir/bin/python" -m pip install pexpect; then
+            log_info "Installed pexpect in virtual environment."
+
+            # Create a wrapper script for system-wide access
+            create_python_wrapper "$venv_dir"
+            return 0
+        else
+            log_warning "Failed to install packages in virtual environment."
+            rm -rf "$venv_dir"
+            return 1
+        fi
+    else
+        log_warning "Failed to create virtual environment."
+        return 1
+    fi
+}
+
+# Function: create_python_wrapper
+# Purpose: Create a wrapper to use the virtual environment Python
+create_python_wrapper() {
+    local venv_dir="$1"
+    local wrapper_script="$INSTALL_DIR/python-wrapper"
+
+    log_step "Creating Python wrapper script..."
+
+    cat > "$wrapper_script" << EOF
+#!/bin/bash
+# Python wrapper for Mininet installation
+# This ensures the virtual environment Python is used
+export PATH="$venv_dir/bin:\$PATH"
+exec "$venv_dir/bin/python" "\$@"
+EOF
+
+    chmod +x "$wrapper_script"
+
+    # Update PYTHON variable to use wrapper
+    PYTHON="$wrapper_script"
+
+    log_info "Python wrapper created: $wrapper_script"
+}
+
+# Function: install_python_via_pipx
+# Purpose: Install Python packages using pipx (if available)
+install_python_via_pipx() {
+    log_step "Attempting Python package installation via pipx..."
+
+    # Try to install pipx if not available
+    if ! command -v pipx >/dev/null 2>&1; then
+        log_info "Installing pipx..."
+        case $OS in
+            "Ubuntu"|"Debian"*)
+                if ! eval "$PKG_INSTALL" pipx; then
+                    log_warning "Failed to install pipx via package manager."
+                    return 1
+                fi
+                ;;
+            "Fedora"*|"CentOS"*|"Red Hat"*)
+                if ! eval "$PKG_INSTALL" pipx; then
+                    log_warning "Failed to install pipx via package manager."
+                    return 1
+                fi
+                ;;
+        esac
+    fi
+
+    # Use pipx to install pexpect
+    if pipx install pexpect 2>/dev/null; then
+        log_info "Installed pexpect via pipx."
+        return 0
+    else
+        log_warning "Failed to install pexpect via pipx."
+        return 1
+    fi
+}
+
+# Function: install_python_with_break_system
+# Purpose: Last resort - install with --break-system-packages (with user confirmation)
+install_python_with_break_system() {
+    log_step "Last resort: attempting installation with --break-system-packages..."
+
+    log_warning "This method may cause conflicts with system packages."
+    log_warning "It should only be used if other methods fail."
+
+    # In non-interactive mode, skip this dangerous method
+    if [[ "${NON_INTERACTIVE:-false}" == true ]]; then
+        log_info "Skipping --break-system-packages in non-interactive mode."
+        return 1
+    fi
+
+    echo -n "Proceed with --break-system-packages? (y/N): "
+    read -r confirm
+
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        log_info "User declined --break-system-packages installation."
+        return 1
+    fi
+
+    if $PYTHON -m pip install --user --break-system-packages pexpect; then
+        log_info "Installed pexpect with --break-system-packages."
+        return 0
+    else
+        log_error "Failed to install pexpect even with --break-system-packages."
+        return 1
     fi
 }
 
@@ -460,52 +717,59 @@ attempt_alternative_python_install() {
 # Educational note: This shows how to handle Git repositories safely
 clone_repositories() {
     log_section "Source Code Repository Management"
-    
+
     log_step "Setting up workspace in: $INSTALL_DIR"
-    
+
     # Ensure the installation directory exists
     mkdir -p "$INSTALL_DIR"
     cd "$INSTALL_DIR"
-    
+
     # Clone or update Mininet repository
     clone_or_update_repository "mininet" "$MININET_REPO" \
         "Mininet network emulator (maintained fork)"
-    
+
     # Clone or update OpenFlow repository
     clone_or_update_repository "openflow" "$OPENFLOW_REPO" \
         "OpenFlow reference implementation (maintained fork)"
-    
+
     log_success "All repositories cloned/updated successfully."
 }
 
 # Function: clone_or_update_repository
-# Purpose: Clone a new repository or update existing one
+# Purpose: Clone a new repository or update existing one with retry logic
 # Parameters: $1 - directory name, $2 - repository URL, $3 - description
 clone_or_update_repository() {
     local dir_name="$1"
     local repo_url="$2"
     local description="$3"
-    
+
     log_step "Processing repository: $dir_name"
     log_info "Description: $description"
-    
+
     if [[ ! -d "$dir_name" ]]; then
         log_info "Cloning $dir_name from $repo_url..."
-        if git clone "$repo_url" "$dir_name"; then
-            log_success "Successfully cloned $dir_name repository."
-        else
-            log_error "Failed to clone $dir_name repository."
-            log_error "Please check your internet connection and repository URL."
+
+        # Git clone with retry - handles network timeouts and DNS issues
+        install_with_retry "git clone '$repo_url' '$dir_name'" \
+                          "Cloning $dir_name repository" || {
+            log_error "Failed to clone $dir_name repository after multiple attempts"
+            log_error "Please check your internet connection and repository URL: $repo_url"
             exit 1
-        fi
+        }
+
+        log_success "Successfully cloned $dir_name repository."
     else
         log_info "Repository $dir_name already exists. Updating..."
-        if (cd "$dir_name" && git pull); then
-            log_success "Successfully updated $dir_name repository."
-        else
-            log_warning "Failed to update $dir_name repository."
+
+        # Git pull with retry - handles network issues during updates
+        install_with_retry "(cd '$dir_name' && git pull)" \
+                          "Updating $dir_name repository" || {
+            log_warning "Failed to update $dir_name repository after multiple attempts"
             log_warning "Continuing with existing version..."
-        fi
+            log_info "You may want to manually update later with: cd $dir_name && git pull"
+        }
+
+        log_success "Repository $dir_name processed successfully."
     fi
 }
 
@@ -514,60 +778,64 @@ clone_or_update_repository() {
 # ------------------------------------------------------------------------------
 
 # Function: install_openflow
-# Purpose: Compile and install OpenFlow reference implementation
-# Educational note: This shows the typical autotools build process
+# Purpose: Compile and install OpenFlow reference implementation with retry logic
+# Educational note: This shows the typical autotools build process with error handling
 install_openflow() {
     log_section "OpenFlow Reference Implementation Installation"
-    
+
     log_info "OpenFlow provides the protocol specification and reference tools"
     log_info "for software-defined networking (SDN) communication."
-    
+
     cd "$INSTALL_DIR/openflow"
-    
-    # Step 1: Generate configure script from configure.ac
+
+    # Step 1: Generate configure script from configure.ac (can fail due to missing tools)
     log_step "Generating build configuration..."
-    if ./boot.sh; then
-        log_success "Build configuration generated."
-    else
-        log_error "Failed to generate build configuration."
+    install_with_retry "./boot.sh" "OpenFlow build configuration generation" || {
+        log_error "Failed to generate build configuration"
+        log_error "This may indicate missing autotools packages"
         exit 1
-    fi
-    
-    # Step 2: Configure the build system
+    }
+
+    # Step 2: Configure the build system (can fail due to missing dependencies)
     log_step "Configuring build system..."
-    if ./configure; then
-        log_success "Build system configured."
-    else
-        log_error "Failed to configure build system."
+    install_with_retry "./configure" "OpenFlow build system configuration" || {
+        log_error "Failed to configure build system"
+        log_error "This may indicate missing development libraries"
         exit 1
-    fi
-    
-    # Step 3: Compile the source code
+    }
+
+    # Step 3: Compile the source code (can fail due to compiler errors)
     log_step "Compiling OpenFlow (this may take a few minutes)..."
     local cpu_cores
     cpu_cores=$(nproc)
     log_info "Using $cpu_cores CPU cores for parallel compilation."
-    
-    if make -j"$cpu_cores"; then
-        log_success "OpenFlow compilation completed."
-    else
-        log_error "OpenFlow compilation failed."
-        exit 1
-    fi
-    
-    # Step 4: Install compiled binaries
+
+    install_with_retry "make -j$cpu_cores" "OpenFlow compilation" || {
+        log_error "OpenFlow compilation failed"
+        log_info "Trying single-threaded compilation as fallback..."
+
+        # Fallback to single-threaded compilation
+        install_with_retry "make clean && make" "OpenFlow single-threaded compilation" || {
+            log_error "OpenFlow compilation failed even with single-threaded build"
+            log_error "Please check the compilation errors above"
+            exit 1
+        }
+    }
+
+    # Step 4: Install compiled binaries (can fail due to permission issues)
     log_step "Installing OpenFlow binaries..."
-    if sudo make install; then
-        log_success "OpenFlow binaries installed."
-    else
-        log_error "Failed to install OpenFlow binaries."
+    install_with_retry "sudo make install" "OpenFlow binary installation" || {
+        log_error "Failed to install OpenFlow binaries"
+        log_error "Please check sudo permissions and disk space"
         exit 1
-    fi
-    
-    # Step 5: Update system library cache
+    }
+
+    # Step 5: Update system library cache (usually reliable, but can fail)
     log_step "Updating system library cache..."
-    sudo ldconfig
-    
+    install_with_retry "sudo ldconfig" "System library cache update" || {
+        log_warning "Failed to update library cache, but continuing..."
+    }
+
     log_success "OpenFlow installation completed successfully."
 }
 
@@ -576,16 +844,16 @@ install_openflow() {
 # ------------------------------------------------------------------------------
 
 # Function: install_mininet
-# Purpose: Install Mininet network emulator
-# Educational note: This shows how Mininet's custom build system works
+# Purpose: Install Mininet network emulator with robust system-wide access setup
+# Educational note: This shows how to handle different Python environments and installation paths
 install_mininet() {
     log_section "Mininet Network Emulator Installation"
-    
+
     log_info "Mininet creates realistic virtual networks using Linux namespaces"
     log_info "and virtual ethernet pairs for network experimentation."
-    
+
     cd "$INSTALL_DIR/mininet"
-    
+
     # Install Mininet core using its custom Makefile
     log_step "Installing Mininet core..."
     if sudo PYTHON="$PYTHON" make install; then
@@ -594,16 +862,130 @@ install_mininet() {
         log_error "Mininet installation failed."
         exit 1
     fi
-    
-    # Create symbolic link for system-wide access
-    log_step "Creating system-wide access link..."
-    if sudo ln -sf "$INSTALL_DIR/mininet/mininet-venv/bin/mn" /usr/local/bin/mn; then
-        log_success "Mininet command available system-wide."
+
+    # Install Mininet Python module for import access
+    log_step "Installing Mininet Python module..."
+    log_info "This enables 'from mininet.net import Mininet' in Python scripts"
+    if sudo python3 setup.py develop; then
+        log_success "Mininet Python module installed successfully."
     else
-        log_warning "Failed to create system-wide link. Manual path configuration may be needed."
+        log_error "Failed to install Mininet Python module."
+        log_warning "You may need to run 'sudo python3 setup.py develop' manually later."
     fi
-    
+
+    # Create system-wide access with robust path detection
+    create_mininet_system_access
+
     log_success "Mininet installation completed successfully."
+}
+
+# Function: create_mininet_system_access
+# Purpose: Create system-wide access to Mininet command with fallback options
+create_mininet_system_access() {
+    log_step "Creating system-wide access for Mininet command..."
+
+    local mn_command_found=false
+    local mn_source_path=""
+
+    # Array of possible Mininet command locations to check
+    local -a possible_mn_paths=(
+        "$INSTALL_DIR/mininet/bin/mn"                    # Standard installation
+        "$INSTALL_DIR/mininet/mininet-venv/bin/mn"       # Virtual environment installation
+        "$INSTALL_DIR/mininet/util/mn"                   # Alternative location
+        "/usr/local/bin/mn"                              # System installation
+        "/usr/bin/mn"                                    # Package manager installation
+    )
+
+    # Find the actual Mininet command location
+    log_info "Searching for Mininet command in possible locations..."
+    for path in "${possible_mn_paths[@]}"; do
+        if [[ -f "$path" && -x "$path" ]]; then
+            mn_source_path="$path"
+            mn_command_found=true
+            log_info "Found Mininet command at: $path"
+            break
+        fi
+    done
+
+    # If not found in expected locations, search more broadly
+    if [[ "$mn_command_found" == false ]]; then
+        log_info "Mininet command not found in expected locations. Searching..."
+
+        # Search within the installation directory
+        local search_result
+        search_result=$(find "$INSTALL_DIR/mininet" -name "mn" -type f -executable 2>/dev/null | head -1)
+
+        if [[ -n "$search_result" ]]; then
+            mn_source_path="$search_result"
+            mn_command_found=true
+            log_info "Found Mininet command via search: $search_result"
+        fi
+    fi
+
+    # Create system-wide access if command was found
+    if [[ "$mn_command_found" == true ]]; then
+        create_mn_symlink "$mn_source_path"
+    else
+        provide_manual_access_instructions
+    fi
+}
+
+# Function: create_mn_symlink
+# Purpose: Create symbolic link for Mininet command
+# Parameter: $1 - Source path for the mn command
+create_mn_symlink() {
+    local source_path="$1"
+    local target_path="/usr/local/bin/mn"
+
+    log_step "Creating symbolic link for system-wide access..."
+    log_info "Source: $source_path"
+    log_info "Target: $target_path"
+
+    # Remove existing link if it exists
+    if [[ -L "$target_path" ]]; then
+        log_info "Removing existing symbolic link..."
+        sudo rm -f "$target_path"
+    fi
+
+    # Create new symbolic link
+    if sudo ln -sf "$source_path" "$target_path"; then
+        log_success "Symbolic link created successfully."
+
+        # Verify the link works
+        if command -v mn >/dev/null 2>&1; then
+            log_success "Mininet command 'mn' is now available system-wide."
+        else
+            log_warning "Symbolic link created but 'mn' command not found in PATH."
+            log_info "You may need to add /usr/local/bin to your PATH."
+        fi
+    else
+        log_warning "Failed to create symbolic link!"
+        provide_manual_access_instructions
+    fi
+}
+
+# Function: provide_manual_access_instructions
+# Purpose: Provide manual instructions when automatic system-wide access setup fails
+provide_manual_access_instructions() {
+    log_warning "Automatic system-wide access setup failed."
+    log_info "You can manually access Mininet using one of these methods:"
+    echo
+    echo "Method 1: Direct path execution"
+    echo "  cd $INSTALL_DIR/mininet"
+    echo "  sudo ./bin/mn [options]  # or ./util/mn [options]"
+    echo
+    echo "Method 2: Add to your shell profile"
+    echo "  echo 'export PATH=\"$INSTALL_DIR/mininet/bin:\$PATH\"' >> ~/.bashrc"
+    echo "  source ~/.bashrc"
+    echo
+    echo "Method 3: Create your own alias"
+    echo "  echo 'alias mn=\"sudo $INSTALL_DIR/mininet/bin/mn\"' >> ~/.bashrc"
+    echo "  source ~/.bashrc"
+    echo
+    echo "Method 4: Python module approach"
+    echo "  cd $INSTALL_DIR/mininet"
+    echo "  sudo python3 -c \"from mininet.cli import CLI; from mininet.net import Mininet; CLI(Mininet()).cmdloop()\""
+    echo
 }
 
 # ------------------------------------------------------------------------------
@@ -615,10 +997,10 @@ install_mininet() {
 # Educational note: This shows different approaches for different Linux distributions
 install_openvswitch() {
     log_section "Open vSwitch Installation"
-    
+
     log_info "Open vSwitch is a production-quality virtual switch"
     log_info "that supports OpenFlow for software-defined networking."
-    
+
     case $OS in
         "Ubuntu"|"Debian"*)
             install_ovs_debian
@@ -627,7 +1009,7 @@ install_openvswitch() {
             install_ovs_redhat
             ;;
     esac
-    
+
     log_success "Open vSwitch installation completed."
 }
 
@@ -635,21 +1017,21 @@ install_openvswitch() {
 # Purpose: Install Open vSwitch on Debian/Ubuntu systems
 install_ovs_debian() {
     log_step "Installing Open vSwitch packages for Debian/Ubuntu..."
-    
+
     eval "$PKG_INSTALL" openvswitch-switch openvswitch-common
-    
+
     # Disable the test controller service (Mininet will manage switches)
     log_step "Configuring Open vSwitch services..."
-    
+
     # Stop and disable test controller (if it exists)
     if sudo systemctl stop openvswitch-testcontroller 2>/dev/null; then
         log_info "Stopped OpenFlow test controller service."
     fi
-    
+
     if sudo systemctl disable openvswitch-testcontroller 2>/dev/null; then
         log_info "Disabled OpenFlow test controller service."
     fi
-    
+
     log_success "Open vSwitch configured for Debian/Ubuntu."
 }
 
@@ -657,24 +1039,24 @@ install_ovs_debian() {
 # Purpose: Install Open vSwitch on Red Hat family systems
 install_ovs_redhat() {
     log_step "Installing Open vSwitch packages for Red Hat family..."
-    
+
     eval "$PKG_INSTALL" openvswitch
-    
+
     # Enable and start the Open vSwitch service
     log_step "Enabling Open vSwitch service..."
-    
+
     if sudo systemctl enable openvswitch; then
         log_success "Open vSwitch service enabled."
     else
         log_warning "Failed to enable Open vSwitch service."
     fi
-    
+
     if sudo systemctl start openvswitch; then
         log_success "Open vSwitch service started."
     else
         log_warning "Failed to start Open vSwitch service."
     fi
-    
+
     log_success "Open vSwitch configured for Red Hat family."
 }
 
@@ -686,43 +1068,45 @@ install_ovs_redhat() {
 # Purpose: Install supplementary networking and development tools
 install_additional_tools() {
     log_section "Additional Networking Tools Installation"
-    
+
     log_info "Installing supplementary tools for network development and analysis..."
-    
+
     # Install POX SDN controller
     install_pox_controller
-    
+
     # Install Wireshark for packet analysis
     install_wireshark
-    
+
     log_success "Additional tools installation completed."
 }
 
 # Function: install_pox_controller
-# Purpose: Install POX SDN controller for OpenFlow experiments
+# Purpose: Install POX SDN controller for OpenFlow experiments with retry logic
 install_pox_controller() {
     log_step "Installing POX SDN controller..."
-    
+
     cd "$INSTALL_DIR"
-    
+
     # Clone POX repository if not present
     if [[ ! -d "pox" ]]; then
         log_info "Cloning POX controller from $POX_REPO..."
-        if git clone "$POX_REPO"; then
-            log_success "POX controller cloned successfully."
-        else
-            log_error "Failed to clone POX controller."
+
+        install_with_retry "git clone '$POX_REPO'" "POX controller cloning" || {
+            log_error "Failed to clone POX controller after multiple attempts"
+            log_error "Please check your internet connection and repository URL: $POX_REPO"
             return 1
-        fi
+        }
+
+        log_success "POX controller cloned successfully."
     else
         log_info "POX controller already present. Updating..."
-        if (cd pox && git pull); then
-            log_success "POX controller updated."
-        else
-            log_warning "Failed to update POX controller."
-        fi
+
+        install_with_retry "(cd pox && git pull)" "POX controller update" || {
+            log_warning "Failed to update POX controller after multiple attempts"
+            log_warning "Continuing with existing version..."
+        }
     fi
-    
+
     log_info "POX controller available at: $INSTALL_DIR/pox"
 }
 
@@ -730,7 +1114,7 @@ install_pox_controller() {
 # Purpose: Install Wireshark packet analyzer
 install_wireshark() {
     log_step "Installing Wireshark packet analyzer..."
-    
+
     case $OS in
         "Ubuntu"|"Debian"*)
             if eval "$PKG_INSTALL" wireshark-common tshark; then
@@ -757,21 +1141,21 @@ install_wireshark() {
 # Purpose: Set up environment variables and PATH for easy tool access
 configure_environment() {
     log_section "Environment Configuration"
-    
+
     log_step "Configuring shell environment..."
-    
+
     local bashrc="$HOME/.bashrc"
     local env_marker="# Advanced Networking Course - Mininet Environment"
-    
+
     # Check if environment is already configured
     if grep -q "$env_marker" "$bashrc"; then
         log_info "Environment already configured in $bashrc."
         return 0
     fi
-    
+
     # Add environment configuration to .bashrc
     log_step "Adding environment variables to $bashrc..."
-    
+
     cat << EOF >> "$bashrc"
 
 $env_marker
@@ -789,7 +1173,7 @@ alias mn-test='sudo mn --test pingall'
 alias ovs-show='sudo ovs-vsctl show'
 alias pox-help='cd \$POX_DIR && python3 pox.py --help'
 EOF
-    
+
     log_success "Environment configuration added to $bashrc."
     log_info "Run 'source ~/.bashrc' or restart your terminal to apply changes."
 }
@@ -802,11 +1186,11 @@ EOF
 # Purpose: Verify that all components are installed and working correctly
 test_installation() {
     log_section "Installation Testing and Verification"
-    
+
     log_info "Running comprehensive installation tests..."
-    
+
     local test_passed=true
-    
+
     # Test 1: Mininet command availability
     if test_mininet_command; then
         log_success "✓ Mininet command test passed"
@@ -814,14 +1198,22 @@ test_installation() {
         log_error "✗ Mininet command test failed"
         test_passed=false
     fi
-    
+
+    # Test 1b: Mininet Python module availability
+    if test_mininet_python_module; then
+        log_success "✓ Mininet Python module test passed"
+    else
+        log_error "✗ Mininet Python module test failed"
+        test_passed=false
+    fi
+
     # Test 2: OpenFlow utilities
     if test_openflow_utilities; then
         log_success "✓ OpenFlow utilities test passed"
     else
         log_warning "⚠ OpenFlow utilities test had issues"
     fi
-    
+
     # Test 3: Open vSwitch
     if test_openvswitch; then
         log_success "✓ Open vSwitch test passed"
@@ -829,14 +1221,14 @@ test_installation() {
         log_error "✗ Open vSwitch test failed"
         test_passed=false
     fi
-    
+
     # Test 4: POX controller
     if test_pox_controller; then
         log_success "✓ POX controller test passed"
     else
         log_warning "⚠ POX controller test had issues"
     fi
-    
+
     # Test 5: Python dependencies
     if test_python_dependencies; then
         log_success "✓ Python dependencies test passed"
@@ -844,7 +1236,7 @@ test_installation() {
         log_error "✗ Python dependencies test failed"
         test_passed=false
     fi
-    
+
     # Overall test result
     if [[ "$test_passed" == true ]]; then
         log_success "✓ All critical tests passed! Installation is ready for use."
@@ -858,7 +1250,7 @@ test_installation() {
 # Purpose: Test if Mininet command is available and functional
 test_mininet_command() {
     log_step "Testing Mininet command availability..."
-    
+
     if command -v mn >/dev/null 2>&1; then
         log_info "Mininet command found: $(which mn)"
         return 0
@@ -868,13 +1260,28 @@ test_mininet_command() {
     fi
 }
 
+# Function: test_mininet_python_module
+# Purpose: Test if Mininet Python module can be imported
+test_mininet_python_module() {
+    log_step "Testing Mininet Python module availability..."
+
+    if python3 -c "from mininet.net import Mininet; from mininet.node import OVSKernelSwitch; print('Mininet Python module is available')" 2>/dev/null; then
+        log_info "Mininet Python module can be imported successfully"
+        return 0
+    else
+        log_error "Failed to import Mininet Python module"
+        log_error "You may need to run: cd $INSTALL_DIR/mininet && sudo python3 setup.py develop"
+        return 1
+    fi
+}
+
 # Function: test_openflow_utilities
 # Purpose: Test OpenFlow reference implementation utilities
 test_openflow_utilities() {
     log_step "Testing OpenFlow utilities..."
-    
-    local openflow_controller="$INSTALL_DIR/openflow/utilities/ovs-controller"
-    
+
+    local openflow_controller="/usr/local/bin/controller"
+
     if [[ -f "$openflow_controller" ]]; then
         log_info "OpenFlow controller found: $openflow_controller"
         return 0
@@ -888,10 +1295,10 @@ test_openflow_utilities() {
 # Purpose: Test Open vSwitch installation and basic functionality
 test_openvswitch() {
     log_step "Testing Open vSwitch..."
-    
+
     if command -v ovs-vsctl >/dev/null 2>&1; then
         log_info "Open vSwitch command found: $(which ovs-vsctl)"
-        
+
         # Test basic OVS functionality
         if sudo ovs-vsctl show >/dev/null 2>&1; then
             log_info "Open vSwitch is responding to commands"
@@ -910,12 +1317,12 @@ test_openvswitch() {
 # Purpose: Test POX SDN controller installation
 test_pox_controller() {
     log_step "Testing POX controller..."
-    
+
     local pox_path="$INSTALL_DIR/pox"
-    
+
     if [[ -d "$pox_path" ]] && [[ -f "$pox_path/pox.py" ]]; then
         log_info "POX controller found: $pox_path"
-        
+
         # Test if POX can be executed
         if cd "$pox_path" && python3 pox.py --help >/dev/null 2>&1; then
             log_info "POX controller is functional"
@@ -934,7 +1341,7 @@ test_pox_controller() {
 # Purpose: Test if required Python packages are available
 test_python_dependencies() {
     log_step "Testing Python dependencies..."
-    
+
     # Test pexpect import
     if $PYTHON -c "import pexpect; print('pexpect version:', pexpect.__version__)" 2>/dev/null; then
         log_info "Python pexpect library is available"
@@ -949,11 +1356,11 @@ test_python_dependencies() {
 # Purpose: Run a basic Mininet functionality test (optional)
 run_basic_mininet_test() {
     log_step "Running basic Mininet functionality test..."
-    
+
     log_info "This will create a simple network topology and test connectivity"
     echo -n "Run Mininet test? This requires sudo privileges (y/N): "
     read -r run_test
-    
+
     if [[ "$run_test" =~ ^[Yy]$ ]]; then
         log_info "Running: sudo mn --test pingall"
         if sudo mn --test pingall; then
@@ -975,9 +1382,9 @@ run_basic_mininet_test() {
 # Purpose: Clean up temporary files and perform post-installation tasks
 cleanup_installation() {
     log_section "Post-Installation Cleanup"
-    
+
     log_step "Performing cleanup tasks..."
-    
+
     # Clear package manager cache (optional)
     case $OS in
         "Ubuntu"|"Debian"*)
@@ -991,13 +1398,13 @@ cleanup_installation() {
             fi
             ;;
     esac
-    
+
     # Update locate database for file searching
     if command -v updatedb >/dev/null 2>&1; then
         log_step "Updating file location database..."
         sudo updatedb 2>/dev/null || true
     fi
-    
+
     log_success "Cleanup completed"
 }
 
@@ -1005,7 +1412,7 @@ cleanup_installation() {
 # Purpose: Show final installation summary and usage instructions
 display_installation_summary() {
     log_section "Installation Summary"
-    
+
     echo
     echo "🎉 Advanced Networking Course - Mininet Installation Complete!"
     echo
@@ -1137,7 +1544,7 @@ parse_command_line_arguments() {
     local clean_install=false
     local non_interactive=false
     local dir_from_cmdline=false
-    
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -1200,7 +1607,7 @@ parse_command_line_arguments() {
                 ;;
         esac
     done
-    
+
     # Set global variables based on parsed options
     export INSTALL_OVS="$install_ovs"
     export INSTALL_TOOLS="$install_tools"
@@ -1222,10 +1629,10 @@ main() {
     log_info "This script will install Mininet, OpenFlow, and related networking tools"
     log_info "for hands-on software-defined networking experiments."
     echo
-    
+
     # Parse command line arguments
     parse_command_line_arguments "$@"
-    
+
     # Determine installation directory
     if [[ "$DIR_FROM_CMDLINE" == true ]]; then
         log_info "Using command-line specified directory: $INSTALL_DIR"
@@ -1237,7 +1644,7 @@ main() {
     else
         prompt_install_directory
     fi
-    
+
     # Display configuration summary
     log_section "Installation Configuration"
     log_info "Installation directory: $INSTALL_DIR"
@@ -1246,7 +1653,7 @@ main() {
     log_info "Install Open vSwitch: $INSTALL_OVS"
     log_info "Install additional tools: $INSTALL_TOOLS"
     echo
-    
+
     # Clean installation if requested
     if [[ "$CLEAN_INSTALL" == true ]]; then
         log_info "Cleaning installation directory..."
@@ -1254,14 +1661,14 @@ main() {
         mkdir -p "$INSTALL_DIR"
         log_success "Installation directory cleaned"
     fi
-    
+
     # Test-only mode
     if [[ "$TEST_ONLY" == true ]]; then
         log_info "Running in test-only mode..."
         test_installation
         exit $?
     fi
-    
+
     # Security check - don't run as root
     if [[ $EUID -eq 0 ]]; then
         log_error "This script should not be run as root!"
@@ -1269,48 +1676,48 @@ main() {
         log_error "Please run as a regular user with sudo privileges."
         exit 1
     fi
-    
+
     # Main installation sequence
     log_section "Starting Installation Process"
-    
+
     # Phase 1: System preparation
     detect_operating_system
     install_system_dependencies
     install_python_dependencies
-    
+
     # Phase 2: Source code management
     clone_repositories
-    
+
     # Phase 3: Core networking tools
     install_openflow
     install_mininet
-    
+
     # Phase 4: Optional components
     if [[ "$INSTALL_OVS" == true ]]; then
         install_openvswitch
     else
         log_info "Skipping Open vSwitch installation (--no-ovs specified)"
     fi
-    
+
     if [[ "$INSTALL_TOOLS" == true ]]; then
         install_additional_tools
     else
         log_info "Skipping additional tools installation (--no-tools specified)"
     fi
-    
+
     # Phase 5: Configuration and testing
     configure_environment
     test_installation
-    
+
     # Optional basic functionality test
     if [[ "$NON_INTERACTIVE" != true ]]; then
         run_basic_mininet_test
     fi
-    
+
     # Phase 6: Cleanup and summary
     cleanup_installation
     display_installation_summary
-    
+
     log_success "Installation completed successfully!"
     log_info "Happy networking!"
 }
