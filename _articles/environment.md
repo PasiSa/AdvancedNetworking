@@ -44,7 +44,6 @@ reboot again the virtual machine:
 Note, that the above is not needed, if you use UTM that provides a separate
 image in its gallery.
 
-
 As the next step, you install and use the needed networking tools, according to
 the instructions in this chapter.
 
@@ -68,7 +67,7 @@ To install Mininet and all required networking tools for the Advanced Networking
 
 ```bash
 # Download the installation script
-curl -O https://raw.githubusercontent.com/kctong529/AdvancedNetworking/main/assets/install.sh
+curl -O https://raw.githubusercontent.com/PasiSa/AdvancedNetworking/main/assets/install.sh
 
 # Make executable and run
 chmod +x install.sh
@@ -148,7 +147,7 @@ have been done already with the initial installation of the Linux distribution):
     sudo systemctl start ssh
     sudo systemctl enable ssh
 
-Next, check if the virtual machine's firewall is enabled. 
+Next, check if the virtual machine's firewall is enabled.
 
     sudo ufw status
 
@@ -176,14 +175,14 @@ Settings -> Network -> Adapter 1 -> Advanced (arrow down) -> Port Forwarding.
 This should open a list of Port Forwarding Rules. Create a new rule with the plus
 icon and set the fields as following:
 
-| Field        | Value            |
-|--------------|------------------|
-| **Name**     | ssh              |
-| **Protocol** | TCP              |
-| **Host Port**| 2222             |
-| **Guest Port**| 22              |
-| **Host IP**  | (Leave blank)    |
-| **Guest IP** | (Leave blank)    |
+| Field          | Value         |
+| -------------- | ------------- |
+| **Name**       | ssh           |
+| **Protocol**   | TCP           |
+| **Host Port**  | 2222          |
+| **Guest Port** | 22            |
+| **Host IP**    | (Leave blank) |
+| **Guest IP**   | (Leave blank) |
 
 Your port forwarding rules should now look like this:
 

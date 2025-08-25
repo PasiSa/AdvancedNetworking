@@ -43,8 +43,8 @@ set -o pipefail
 # Students can modify these to use different repositories or change paths.
 
 # Repository URLs - Using maintained forks instead of abandoned originals
-MININET_REPO="https://github.com/kctong529/mininet.git"
-OPENFLOW_REPO="https://github.com/kctong529/openflow.git"
+MININET_REPO="https://github.com/PasiSa/mininet.git"
+OPENFLOW_REPO="https://github.com/PasiSa/openflow.git"
 POX_REPO="https://github.com/noxrepo/pox.git"
 
 # Installation paths
