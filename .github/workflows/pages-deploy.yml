@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - master
+      - dev-2026
     paths-ignore:
       - .gitignore
       - README.md
@@ -35,6 +36,13 @@ jobs:
           # If using the 'assets' git submodule from Chirpy Starter, uncomment above
           # (See: https://github.com/cotes2020/chirpy-starter/tree/main/assets)
 
+      - name: Export draw.io diagrams to SVG
+        uses: rlespinasse/drawio-export-action@v2
+        with:
+          path: images
+          format: svg
+          transparent: true
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
@@ -62,6 +70,7 @@ jobs:
           path: "_site${{ steps.pages.outputs.base_path }}"
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

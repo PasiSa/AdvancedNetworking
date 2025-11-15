@@ -3,3 +3,4 @@ Gemfile.lock
 .sass-cache
 .vscode
 _site
+images/*.svg
