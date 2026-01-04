@@ -27,6 +27,7 @@ url: ""
 
 github:
   username: PasiSa
+  url: "https://github.com/PasiSa/AdvancedNetworking"
 
 social:
   # Change to your full name.
@@ -34,7 +35,7 @@ social:
   name: Pasi Sarolahti
   email: pasi.sarolahti@aalto.fi
   links:
-    - https://github.com/PasiSa
+    - https://github.com/PasiSa/AdvancedNetworking
     # Uncomment below to add more social links
     # - https://www.linkedin.com/in/username
 
@@ -92,7 +93,7 @@ theme_mode: # [light | dark]
 cdn:
 
 # the avatar on sidebar, support local or CORS resources
-avatar:
+avatar: /images/avatar-linux.png
 
 # The URL of the site-wide social preview image used in SEO `og:image` meta tag.
 # It can be overridden by a customized `page.image` in front matter.

@@ -8,27 +8,19 @@
   url: /tabs/about/
   icon: "fas fa-info-circle"
 
-- title: Settup Up
+- title: Exercise Environment
   url: /environment/
   icon: "fas fa-gear"
 
-- title: Wireshark
-  url: /wireshark/
-  icon: "fas fa-hat-wizard"
-
-- title: Sockets
+- title: Content
   icon: "fas fa-angles-down"
   children:
-    - title: Socket Basics
+    - title: 2. Network programming basics
       url: /socket-basics/
-    - title: Server Sockets
+    - title: 3a. Server programming
       url: /server-sockets/
-    - title: UDP Sockets
+    - title: 3b. UDP Sockets
       url: /udp/
-
-- title: Linux Networking
-  url: /linux-tcpip/
-  icon: "fas fa-network-wired"
 
 - title: Code Examples
   url: /examples/
@@ -48,3 +40,7 @@
       url: /assignments/task-quic/
     - title: IP Tunnel
       url: /assignments/task-tun/
+
+- title: Wireshark
+  url: /wireshark/
+  icon: "fas fa-hat-wizard"
