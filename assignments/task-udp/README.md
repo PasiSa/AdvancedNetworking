@@ -1,11 +1,11 @@
 ---
 ---
 
-# Task 3: Data transfer using UDP
+# Assignment: Data transfer using UDP
 
 In this task you need to send largish amount of data using UDP protocol. Like
 previous assignments, your client starts by opening a connection to
-_adnet-agent_, and sending a control message: `TASK-003 keyword`. The server
+_adnet-agent_, and sending a control message: `TASK-UDP keyword`. The server
 replies with string <number> <character>, that indicates how many bytes must be
 sent using UDP, and the character that should be repeated in datagram payload
 content.
@@ -40,7 +40,7 @@ content:
   be asked in the MyCourses task assignment for grading.
 
 If you use Rust to implement your program, the [assignment
-template](https://github.com/PasiSa/AdvancedNetworking/tree/main/assignments/task-003)
+template](https://github.com/PasiSa/AdvancedNetworking/tree/main/assignments/task-udp)
 may turn out to be useful.
 You should run your implementation in three different mininet configurations, as
 described below. Be prepared to the possibility that some of the datagrams may

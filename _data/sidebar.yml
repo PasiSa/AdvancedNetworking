@@ -31,15 +31,11 @@
   icon: "fas fa-pen"
   children:
     - title: Simple Client
-      url: /assignments/task-001/
+      url: /assignments/task-cli/
     - title: TCP Server
-      url: /assignments/task-002/
+      url: /assignments/task-srv/
     - title: Data Transfer using UDP
-      url: /assignments/task-003/
-    - title: Experimenting with QUIC
-      url: /assignments/task-quic/
-    - title: IP Tunnel
-      url: /assignments/task-tun/
+      url: /assignments/task-udp/
 
 - title: Wireshark
   url: /wireshark/

@@ -4,46 +4,37 @@ layout: home
 
 # Advanced Networking course
 
-These pages contain the material and assignments for the hands-on programming
-and measurement tasks of the **Advanced Networking course (ELEC-E7321)** at
-Aalto University. The assignment descriptions refer to MyCourse learning
-platform available for students enrolled on the course. If you are not enrolled
-on the course, but are just interested on the topic, feel free to try out the
-tasks nevertheless.
+These pages contain the material and assignments for the **Advanced Networking
+course (ELEC-E7321)** at Aalto University. The assignment descriptions refer to
+_MyCourses_ learning platform available for students enrolled on the course. If you
+are not enrolled on the course, but are just interested on the topic, feel free
+to try out the tasks nevertheless.
 
-The code examples and assignment templates in
-this material are provided in the **[Rust](https://www.rust-lang.org/)** language.
-However, you can use also other languages for your implementations and
-experimentation, such as C or C++, or even Python. JavaScript is not a viable
-option on this course.
+The code examples and assignment templates in this material are provided in the
+**[Rust](https://www.rust-lang.org/)** language, and some that are closer to the
+kernel and device interface level also in C. However, you may use any language
+of your preference for the assignments. Some of the assignments closer to the
+kernel and network drivers may not be doable with higher-level interpreted
+languages, though.
 
-Note that the material is still somewhat under development and there will be
-changes and additions coming during the course. The GitHub repository for the
+The GitHub repository for the
 material is **[available](https://github.com/PasiSa/AdvancedNetworking)**. If you
 find something to correct or add, feel free to drop an [GitHub
 issue](https://github.com/PasiSa/AdvancedNetworking/issues/new)
 in the repository, or just send [E-mail](mailto:pasi.sarolahti@aalto.fi) to the
 author.
 
-Links to currently available content:
+The course structure is the following:
 
-- **[Setting up the exercise environment](environment.md)**. It is recommended
-  that you read this with thought already before start of the course. The course
-  assignments need to be run in a Linux system with various networking software
-  installed. Therefore you should be able to run a virtual machine in your
-  computer, hosting the Linux guest with needed software.
-
-- **[Wireshark and Mininet](wireshark.md)**
-
-- **[Socket programming basics](socket-basics.md)**
-
-- **[Server sockets and concurrent connections](server-sockets.md)**
-
-- **[UDP and datagram sockets](udp.md)**
-
-- **[Linux networking](linux-tcpip.md)**
-
-- **[Small code examples in C and Rust](examples.md)**
+1. Introduction
+1. [Network programming basics](socket-basics/)
+1. [Server programming and managing concurrency](server-sockets/)
+1. Congestion control
+1. Evolution of the Web and the QUIC protocol
+1. Linux Networking Internals
+1. Software Defined Networking and Programmable Networks
+1. Datacenter networking
+1. Internet of Things and challenged networks
 
 ## Assignments
 
@@ -62,11 +53,9 @@ you assignment code in your native system and development tools, but run the
 code in the virtual Linux guest, that is technically a different machine in your
 system.
 
-The assignments are as follows:
+The following assignments are available:
 
-- [Task 1: Simple client](assignments/task-001.md)
-- [Task 2: TCP server](assignments/task-002.md)
-- [Task 3: Data transfer using UDP](assignments/task-003.md)
-- [Task: Experimenting with QUIC](assignments/task-quic.md)
-- [Task: IP Tunnel](assignments/task-tun.md)
-- _some more may be coming here..._
+- [Simple client](assignments/task-cli.md)
+- [TCP server](assignments/task-srv.md)
+- [Data transfer using UDP](assignments/task-udp.md)
+- _More will be coming later_

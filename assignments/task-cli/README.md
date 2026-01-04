@@ -1,11 +1,11 @@
 ---
 ---
 
-# Task 1: Simple client
+# Assignment: Simple client
 
 In this assignment you will implement a TCP client that opens a TCP connection
 to the `adnet-agent` server assuming the `simple_topo` topology in our Mininet
-setup. After you send initial control message `TASK-001 keyword` to the server,
+setup. After you send initial control message `TASK-CLI keyword` to the server,
 it will respond by sending a large message consisting of alphanumeric characters
 to the same socket. Replace "keyword" with the word that is randomly given to
 you in MyCourses task description. You should read all data the server sends.
@@ -15,7 +15,7 @@ this assignment applying different properties on the bottleneck link, and report
 the results following the instructions given below.
 
 Note that the course git repository contains [Rust
-templates](https://github.com/PasiSa/AdvancedNetworking/tree/main/assignments/task-001)
+templates](https://github.com/PasiSa/AdvancedNetworking/tree/main/assignments/task-cli)
 for this task that you may use if you want.
 
 You should repeat the assignment applying the following four scenarios:

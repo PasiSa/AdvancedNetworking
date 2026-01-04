@@ -23,7 +23,7 @@ struct Client {
 
 
 fn main() {
-    println!("Task 2 starting");
+    println!("Task-SRV starting");
 
     /* TODO:
         - Bind listening socket to a chosen port

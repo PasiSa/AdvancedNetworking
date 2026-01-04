@@ -10,7 +10,7 @@ use std::{
 };
 
 fn main() {
-    println!("Task 3 starting");
+    println!("Task-UDP starting");
 
     // Start clock to measure the time it takes do finish transmission
     let start = Instant::now();

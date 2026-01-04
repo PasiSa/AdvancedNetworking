@@ -1,13 +1,13 @@
 ---
 ---
 
-# Task 2: TCP server
+# Assignment: TCP server
 
 In this assignment, you will implement a TCP server that gets incoming connection
 requests and should send a number of bytes as requested by the client.
 
 The course git repository contains [Rust
-templates](https://github.com/PasiSa/AdvancedNetworking/tree/main/assignments/task-002)
+templates](https://github.com/PasiSa/AdvancedNetworking/tree/main/assignments/task-srv)
 for this task that you may use if you want.
 
 Follow these steps in your program:
@@ -16,7 +16,7 @@ Follow these steps in your program:
    choose a port number between 1024 and 49151
 
 2. Send a control message to the _adnet-agent_ server that follows this form:
-   `TASK-002 keyword IP:port`. As in the previous task, _keyword_ is a random word
+   `TASK-SRV keyword IP:port`. As in the previous task, _keyword_ is a random word
    you receive in the MyCourses assignment. _IP_ is the IP
    address your program runs at listening to incoming connections, and _port_ is
    the port that you chose to bind for listening. If you
@@ -47,7 +47,7 @@ Follow these steps in your program:
 The diagram below illustrates the expected communication between your
 implementation and _adnet-agent_.
 
-![Communication](/assignments/task-002/comms.png "Communication")
+![Communication](/images/task-srv.svg "Communication"){: width="90%" .center-img }
 
 Execute your program and the _adnet-agent_ in the Mininet `simple_topo` topology. As
 in the previous assignment, _adnet-agent_ should run in host "_rh1_", and your

@@ -9,7 +9,7 @@ use std::{
 };
 
 fn main() {
-    println!("Task 1 starting");
+    println!("Task-CLI starting");
 
     // Start clock to measure the time it takes do finish transmission
     let start = Instant::now();
