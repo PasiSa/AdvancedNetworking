@@ -4,3 +4,4 @@ Gemfile.lock
 .vscode
 _site
 images/*.svg
+images/*.bkp
