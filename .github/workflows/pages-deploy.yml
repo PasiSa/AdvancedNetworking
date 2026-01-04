@@ -40,8 +40,10 @@ jobs:
         uses: rlespinasse/drawio-export-action@v2
         with:
           path: images
+          output: .
           format: svg
           transparent: true
+          remove-page-suffix: true
 
       - name: Setup Pages
         id: pages
