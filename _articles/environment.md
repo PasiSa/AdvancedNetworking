@@ -121,7 +121,7 @@ The script implements a simple topology with four nodes (titled "lh1", "lh2",
 propagation latency of 200 ms. Mininet command line interface opens, where you
 can run different programs in one of the emulated mininet nodes.
 
-![Simple topology](/images/simple-topo.png "Simple topology")
+![Simple topology](/images/simple-topo.png "Simple topology"){: width="90%" .center-img }
 
 For example, typing `lh1 ping rh1` starts a ping tool at "lh1" (at IP address
 10.0.0.1) that sends ICMP echo requests to "rh1" (at IP address 10.0.0.3), that
@@ -248,8 +248,9 @@ If you are new to Rust, don't be afraid to try it. The Rust development team has
 provided comprehensive [online resources](https://www.rust-lang.org/learn) for
 learning Rust. You can start, for example, from the [Rust
 book](https://doc.rust-lang.org/book/). There are plenty of Rust examples in the
-Internet that can be found with some googling. Also ChatGPT knows Rust pretty
-well.
+Internet that can be found with some googling. Using AI tools to assist with
+programming is allowed, but please try to understand what you are doing and why.
+Sometimes AI makes silly proposals.
 
 Note that the cargo build and package management system used by Rust does not
 work inside the Mininet virtual network, because it tries to contact resources

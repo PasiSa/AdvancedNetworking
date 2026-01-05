@@ -15,6 +15,8 @@
 - title: Content
   icon: "fas fa-angles-down"
   children:
+    - title: 1. Introduction
+      url: /intro/
     - title: 2. Network programming basics
       url: /socket-basics/
     - title: 3a. Server programming

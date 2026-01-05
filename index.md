@@ -26,7 +26,7 @@ author.
 
 The course structure is the following:
 
-1. Introduction
+1. [Introduction](intro/)
 1. [Network programming basics](socket-basics/)
 1. [Server programming and managing concurrency](server-sockets/)
 1. Congestion control
@@ -35,27 +35,3 @@ The course structure is the following:
 1. Software Defined Networking and Programmable Networks
 1. Datacenter networking
 1. Internet of Things and challenged networks
-
-## Assignments
-
-The assignment descriptions and other possible files needed for assignments are
-under the
-[assignments](https://github.com/PasiSa/AdvancedNetworking/tree/main/assignments)
-folder in this git repository. The assignments also contain program templates
-implemented in Rust that can be used to help you to get started with the
-assignment. You may use the templates or implement your own solution from scratch.
-
-One option is to clone or fork this repository to your local system, after which
-you can start modifying the provided assignment templates, and maintain your
-work in a forked personal git repository. This makes it easier to synchronize
-your modifications between different systems, for example if you want to develop
-you assignment code in your native system and development tools, but run the
-code in the virtual Linux guest, that is technically a different machine in your
-system.
-
-The following assignments are available:
-
-- [Simple client](assignments/task-cli.md)
-- [TCP server](assignments/task-srv.md)
-- [Data transfer using UDP](assignments/task-udp.md)
-- _More will be coming later_
