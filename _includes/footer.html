@@ -1,0 +1,46 @@
+
+<!-- Custom footer for Chirpy -->
+
+<footer
+  aria-label="Site Info"
+  class="
+    d-flex flex-column justify-content-center text-muted
+    flex-lg-row justify-content-lg-between align-items-lg-center pb-lg-3
+  "
+>
+  <!-- Left side: normal copyright -->
+  <p class="mb-0">
+    {{ '©' }}
+    <time>{{ 'now' | date: '%Y' }}</time>
+    {% if site.social.links %}
+      <a href="{{ site.social.links[0] }}">{{ site.social.name }}</a>.
+    {% else %}
+      <em class="fst-normal">{{ site.social.name }}</em>.
+    {% endif %}
+  </p>
+
+  <!-- Middle: small Tux attribution -->
+  <p class="mb-0">
+    <small class="text-muted">
+      Image includes Tux, created by Larry Ewing (1996), used with attribution.
+    </small>
+  </p>
+
+  <!-- Right side: “Powered by …” as in original theme -->
+  <p class="mb-0">
+    {%- capture _platform -%}
+      <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a>
+    {%- endcapture -%}
+
+    {%- capture _theme -%}
+      <a href="https://github.com/cotes2020/jekyll-theme-chirpy"
+         target="_blank" rel="noopener">
+        Chirpy
+      </a>
+    {%- endcapture -%}
+
+    {{ site.data.locales[include.lang].meta
+        | replace: ':PLATFORM', _platform
+        | replace: ':THEME', _theme }}
+  </p>
+</footer>
