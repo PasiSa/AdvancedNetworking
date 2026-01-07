@@ -45,6 +45,11 @@ jobs:
           transparent: true
           remove-page-suffix: true
 
+      - name: After drawio export
+        run: |
+          echo "Images directory after export:"
+          ls -R images || echo "No images directory"
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
