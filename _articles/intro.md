@@ -102,7 +102,9 @@ you assignment code in your native system and development tools, but run the
 code in the virtual Linux guest, that is technically a different machine in your
 system.
 
-The following assignments are available:
+The following assignments are available. Before starting the assignments, you
+should set up a Mininet-based **[exercise environment](../environment/)** used
+in the assignments:
 
 - [Simple client](../assignments/task-cli/)
 - [TCP server](../assignments/task-srv/)

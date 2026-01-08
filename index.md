@@ -6,15 +6,16 @@ layout: home
 
 These pages contain the material and assignments for the **Advanced Networking
 course (ELEC-E7321)** at Aalto University. The assignment descriptions refer to
-_MyCourses_ learning platform available for students enrolled on the course. If you
+_[MyCourses](https://mycourses.aalto.fi/course/section.php?id=272696)_ learning
+platform available for Aalto students enrolled on the course. If you
 are not enrolled on the course, but are just interested on the topic, feel free
 to try out the tasks nevertheless.
 
-The code examples and assignment templates in this material are provided in the
-**[Rust](https://www.rust-lang.org/)** language, and some that are closer to the
-kernel and device interface level also in C. However, you may use any language
-of your preference for the assignments. Some of the assignments closer to the
-kernel and network drivers may not be doable with higher-level interpreted
+Most of the code examples and assignment templates in this material are provided
+in the **[Rust](https://www.rust-lang.org/)** language, some examples that are
+closer to the kernel and device interface level also in C. However, you may use
+any language of your preference for the assignments. Some of the assignments
+closer to the system-level may not be doable with higher-level interpreted
 languages, though.
 
 The GitHub repository for the
@@ -35,3 +36,5 @@ The course structure is the following:
 1. Software Defined Networking and Programmable Networks
 1. Datacenter networking
 1. Internet of Things and challenged networks
+
+_(there may be some small adjustments during the spring)_
