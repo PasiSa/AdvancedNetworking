@@ -44,6 +44,7 @@ jobs:
           format: svg
           transparent: true
           remove-page-suffix: true
+          action-mode: all
 
       - name: After drawio export
         run: |
