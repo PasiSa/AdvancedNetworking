@@ -9,6 +9,32 @@ case, one TCP connection. Sockets can, however, also be used as a control
 interface between applications and kernel, for example to control network
 routing behavior.
 
+This section covers the following topics, some of which may be familiar already
+from earlier courses:
+
+- We shortly discuss **different types of sockets** and what they are used for.
+
+- We discuss the basic aspects of **IP addressing, DNS naming and port allocation**,
+  that need to be understood when developing network applications.
+
+- We start by discussing the basic **C-level Posix socket API** that is how
+  communication sockets have been originally specified, and which the other
+  programming languages are based on.
+
+- We discuss similar basic **Rust socket APIs**, which are based on the Posix
+  API, with some convenience helpers to make programming little bit easier.
+
+- We cover **byte order and alignment aspects** in systems-level network
+  programming, that are important to be understood when writing portable
+  networking code that needs to be understood by different system architectures
+  across the Internet.
+
+- We discuss how **buffering and flow control** affects the dynamics of
+  application-level socket programming.
+
+Finally, you may try the related assignment, "**[Simple
+Client](../assignments/task-cli/)**".
+
 ## Different types of sockets
 
 The two most common socket types are **stream sockets** and **datagram sockets**.
