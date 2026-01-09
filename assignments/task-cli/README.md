@@ -58,7 +58,8 @@ In addition, for each of the above four scenarios, report the following:
 
 Tell also what parameters you used in the "Survival" scenario.
 
-For this task, you will need to use [Wireshark](https://www.wireshark.org/) to
+For this task, you will need to use
+[Wireshark](https://pasisa.github.io/AdvancedNetworking/wireshark/) to
 analyze the TCP traffic, to determine the number of round-trip times and
 retransmissions.
 
