@@ -405,6 +405,7 @@ install_system_dependencies() {
                 "autoconf"             # Auto configuration
                 "automake"             # Auto make
                 "libtool"              # Library tool
+                "pkg-config"           # Needed for configuration (e.g. by OpenFlow)
             )
 
             local -a python_packages=(
