@@ -66,6 +66,9 @@ instructions.
 To install Mininet and all required networking tools for the Advanced Networking course, download and run the [installation script](../assets/install.sh):
 
 ```bash
+# Verify that curl is installed
+sudo apt install curl
+
 # Download the installation script
 curl -O https://raw.githubusercontent.com/PasiSa/AdvancedNetworking/main/assets/install.sh
 
