@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // If read causes error, exits the main function
     let mut buf: [u8; 160] = [0; 160];
     socket.read(&mut buf)?;
-    println!("{}", std::str::from_utf8(&buf).unwrap());
+    println!("{}", std::str::from_utf8(&buf)?);
 
     Ok(())  // Everything successful!
 }
