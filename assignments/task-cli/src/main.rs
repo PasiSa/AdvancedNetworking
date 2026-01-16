@@ -16,7 +16,7 @@ fn main() {
 
     /* TODO:
         - Open TCP connection to adnet-agent server
-        - Write command message to socket: "TASK-001 keyword"
+        - Write command message to socket: "TASK-CLI keyword"
         - Read all data incoming to the socket until the other end closes TCP connection
         - Pay attention to total bytes read, and the last 8 characters read
      */

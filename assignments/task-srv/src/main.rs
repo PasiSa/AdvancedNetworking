@@ -28,7 +28,7 @@ fn main() {
     /* TODO:
         - Bind listening socket to a chosen port
         - Open TCP connection to adnet-agent server
-        - Write command message to socket: "TASK-002 keyword IP:port"
+        - Write command message to socket: "TASK-SRV keyword IP:port"
      */
 
     loop {

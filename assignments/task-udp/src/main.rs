@@ -17,7 +17,7 @@ fn main() {
 
     /* TODO:
         - Open TCP connection to adnet-agent server
-        - Write command message to socket: "TASK-003 keyword"
+        - Write command message to socket: "TASK-UDP keyword"
         - Read server response that contains number of bytes and a character
      */
 
