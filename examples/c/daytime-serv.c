@@ -35,21 +35,30 @@ int main(int argc, char **argv){
         return 1;
     }
 
-	listenfd = socket(AF_INET, SOCK_STREAM, 0);
+	if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		perror("listen");
+		return 1;
+	}
 	
 	bzero(&servaddr,sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	servaddr.sin_port = htons(port);
 
-	bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
+	if (bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+		perror("bind");
+		return 1;
+	}
 
 	listen(listenfd, 10);  // listen Queue for 10 pending connections
 
+	// Loop forever, accept incoming connections one-by one.
 	while(1) {
 
 		len = sizeof(cliaddr);
 		// active socket is created at connfd
+		// Client address and port is written in cliaddr structure
+		// inet_ntop converts binary address structure to string
 		connfd = accept(listenfd, (struct sockaddr *) &cliaddr, &len);
 		printf("connection from %s, port %d\n",
 		    inet_ntop(AF_INET, &cliaddr.sin_addr, buff, sizeof(buff)),
@@ -57,7 +66,14 @@ int main(int argc, char **argv){
 
 		ticks = time(NULL);
 		snprintf(buff, sizeof(buff), "%.24s\r\n", ctime(&ticks));
-		write(connfd, buff, strlen(buff));
+		
+		// In principle write could write only part of the buff, but it is
+		// very unlikely for a newly accepted socket with this little data.
+		// Note that we are intentionally not writing the trailing \0 from C string.
+		if (write(connfd, buff, strlen(buff)) < 0) {
+			perror("write");
+			return 1;
+		}
 
 		close(connfd); // closes the active socket, not listening socket
 	}
