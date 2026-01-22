@@ -415,11 +415,11 @@ fn main() {
     for _ in 0..4 {
         // Clone the Arc to share ownership between threads.
         // The Arc type maintains reference count of the number of copies of the data.
-        let counter = Arc::clone(&counter);
+        let clonedcounter = Arc::clone(&counter);
 
         let handle = thread::spawn(move || {
             // Lock the mutex before accessing the shared data.
-            let mut value = counter.lock().unwrap();
+            let mut value = clonedcounter.lock().unwrap();
             *value += 1;
             // Mutex is automatically unlocked when `value` goes out of scope
         });
@@ -436,9 +436,10 @@ fn main() {
 }
 ```
 
+The same example can be found in our **[git repo](https://github.com/PasiSa/AdvancedNetworking/tree/main/examples/rust/thread-mutex.rs)**.
 For testing this kind of simple programs with Rust, you can compile a single
-source file using the **rustc** command, e.g. `rustc threadtest.rs`. This would
-produce executable called `threadtest` that can be executed on command line to
+source file using the **rustc** command, e.g. `rustc thread-mutex.rs`. This would
+produce executable called `thread-mutex` that can be executed on command line to
 test if it works.
 
 ## Efficient file transfer
