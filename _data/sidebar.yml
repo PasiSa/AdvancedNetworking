@@ -23,6 +23,8 @@
       url: /server-sockets/
     - title: 3b. UDP Sockets
       url: /udp/
+    - title: 4. Congestion control
+      url: /congestion/
 
 - title: Code Examples
   url: /examples/
