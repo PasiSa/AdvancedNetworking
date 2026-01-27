@@ -8,24 +8,25 @@ previous assignments, your client starts by opening a connection to
 _adnet-agent_, and sending a control message: `TASK-UDP keyword`. The server
 replies with string <number> <character>, that indicates how many bytes must be
 sent using UDP, and the character that should be repeated in datagram payload
-content.
+content. Note that you will need to send several datagrams according to
+the following instructions, until the requested amount of data has been delivered.
 
-Each UDP datagram should be structured from a 6-byte header and payload as
+Each UDP datagram should be structured from a **6-byte header** and payload as
 follows:
 
-- Four bytes that indicate sequence number of the datagram, in network byte
-  order. The sequence number calculation starts from 1, and should be increased
+- **Four bytes** that indicate **sequence number** of the datagram, in **network byte
+  order**. The sequence number calculation starts from 1, and should be increased
   by one for each new datagram sent. If you decide to retransmit a datagram that
   has been transmitted earlier, it should re-use the same sequence number as
   originally.
 
-- Two bytes that indicate the number of bytes in payload, in network byte order.
+- **Two bytes** that indicate the **number of bytes in payload**, in network byte order.
   The maximum length of the payload is 1200 bytes.
 
 - After this you should include the payload, repeating the character indicated
   by _adnet-agent_.
 
-The _adnet-agent_ server listens to UDP datagrams in UDP port 20000. For each
+The _adnet-agent_ server listens to UDP datagrams in **UDP port 20000**. For each
 received datagram the server replies by 5-byte UDP acknowledgment with following
 content:
 
@@ -71,6 +72,5 @@ control, to avoid congestion.
 
 The assignment is successful if you can get acknowledgments for all datagrams in
 all three scenarios. Measure also the time from the start of the transfer until
-last acknowledgment is received, and tell that in your response. There is a
-lighthearted competition on who can implement the most efficient protocol (not
-affecting grading).
+last acknowledgment is received, and tell that in your response. How efficient
+can you make your UDP-based simple transport protocol?
