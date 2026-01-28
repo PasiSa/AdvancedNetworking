@@ -307,30 +307,100 @@ corruption. When receiver notices corrupted packet from invalid checksum, it
 will ignore the packet. When data sender notices that packet is lost, it reacts
 to it as congestion event and reduces transmission rate.
 
-Explicit congestion notification (ECN, [RFC
-3168](https://datatracker.ietf.org/doc/html/rfc3168)) was introduced as a
-mechanism for network routers to signal that they are congested before dropping
-packets. When connection is opened, the transport protocol (e.g. TCP) client
-checks if the other end of the connection supports ECN by using a couple of bits
-in transport header. When sending packets, it also marks a bit in IP header to
-indicate the the current connection is capable of using ECN. When active queue
-management algorithm at router wants to signal congestion, it marks another bit
-in the IP header. Receiver transport protocol echoes the status of this bit back
-to sender with the acknowledgment of the packet, after which the sender should
-reduce the transmission rate similarly than it would react to packet loss.
-Therefore ECN can help to avoid many of the congestion-related packet losses.
+**Explicit congestion notification (ECN, [RFC
+3168](https://datatracker.ietf.org/doc/html/rfc3168))** was introduced as a
+mechanism for network routers to signal that they are congested without having
+to drop packets. Therefore ECN should be used together with one of the active
+queue management algorithms discussed above. ECN uses two bits in the IP header
+and two bits in the TCP header for its signaling.
+
+If a sender supports ECN, it marks a **"ECN-capable transport (ECT)"** bit in
+the IP header for all outgoing packets, to indicate the routers on the path that
+ECN is available for this data flow. If this bit is enabled, and router is
+congested, it sets another **"congestion experienced (CE)"** bit in the IP
+header to tell this. If the ECT bit was not set on IP header, the router behaves
+in the traditional way, dropping the IP packet entirely. Because ECN helps to
+avoid packet losses due to congestion, data senders have incentive to use ECN if
+the implementation supports it.
+
+Because the congestion window and sending rate is managed at the sending end of
+the transfer, the received needs to echo the congestion information back, when
+it receives a packet with **CE bit** on. This happens inside the TCP header
+(because routers do not need to see this information), using a **"ECN-Echo
+(ECE)"** bit in TCP acknowledgment header. When the TCP receivers this
+acknowledgment, it knows to reduce the sending rate and congestion window, even
+if no packet loss is detected. Because it is important that sender actually
+receives the congestion information, but it is possible that also acknowledgment
+packets are lost in the network, the **ECE** bit is applied in all subsequent
+acknowledgments, until the TCP receiver gets a TCP header with "**Congestion
+Window Reduced (CWR)**" bit on. Using this the TCP sender tells that it has
+received the ECE bit, and has reduced congestion window. After this the receiver
+can stop sending **ECE** bits, until another congestion indication comes. This
+resembles the three-way handshake in the beginning of TCP connection. From this
+we can notice that the basic TCP can deliver only one congestion indication per
+round-trip time. This is also the case with loss-based congestion control.
+
+The below diagram illustrates the packet sequence when congestion is noticed at
+a router (at red "X").
+
+![ECN operation](/images/cc-ecn.svg){: width="90%" .center-img }
+
+In the beginning of the connection, during TCP connection establishment
+handshake, the TCP sender must verify if the receiver also supports ECN. If it
+is not able to echo the congestion information back, ECN cannot be used. This is
+done by setting the TCP-layer ECN bits on. The receiver echoes back the **ECE**
+bit, if it is capable of using ECN, and ECN can be used for this connection.
+
+### Setting up ECN in Linux
+
+Linux supports ECN both at TCP layer and on IP packet forwarding. By default
+Linux works in a "passive mode": ECN is enabled only when incoming connection
+indicates in TCP handshake that it wants to use ECN, by having the ECN bits set.
+In other words, by default a Linux client that opens the connection does not use
+ECN. This choice was made after it was observed that there are (outdated and
+old) routers in the Internet that cannot handle packets with ECN bit properly,
+and in worse case drop them. This is, of course, unfortunate considering the
+wider deployment of the ECN protocol.
+
+Linux uses **sysctl** parameters to control various aspects in kernel behavior.
+For example, for the networking operations alone, there are tens of parameters
+than can be used to tune TCP and IP behavior. One of the parameters is
+`net.ipv4.tcp_ecn` that tells whether ECN should be used with TCP. You can query
+the current value by:
+
+    sysctl net.ipv4.tcp_ecn
+
+This likely returns value 2, which stands for the passive mode ECN described
+above. ECN can be enabled in all connections, in active mode, by setting this
+parameter to 1:
+
+    sudo sysctl -w net.ipv4.tcp_ecn=1
+
+By default many Linux systems apply FQ-CoDel forwarding, with ECN enabled, as we
+could see in the Traffic Control `qdisc` example in the above FQ-CoDel section:
+"`ecn`" in the tc output tells that ECN is enabled in packet forwarding. If this
+was not the case, it could be enabled, for example by:
+
+    sudo tc qdisc replace dev eth0 root fq_codel ecn
+
+Replacing the interface name with actual interface.
+
+In Mininet, assuming our **aalto/simple_topo.py**, ECN can be enabled using the
+`--ecn` command line option. Note that after this, you'll need to enable the ECN
+separately in the Mininet virtual hosts using the above sysctl in each of the
+ones you are using to start TCP connections.
 
 ## Classes of Modern congestion control
 
 For decades TCP congestion control was based on window-based algorithm, quite
-often Reno or NewReno, and it is still typically what is taught on the basic
-networking course books. The classical algorithm has been successful, because it
-is simple and easy to understand for anyone new to computer networks: if there
-are no packet losses, TCP congestion window is increased at steady pace, but
-reaction to congestion is stronger: the congestion window is reduced to half on
-detected packet loss, or in some cases initialized to one, if there is a
-retransmission timeout. This kind of algorithms have been called Additive
-Increase, Multiplicative Decrease (AIMD) algorithms.
+often Reno (or NewReno) or Tahoe algorithms, and it is still typically what is
+taught on the basic networking course books. The classical algorithm has been
+successful, because it is simple and easy to understand for anyone new to
+computer networks: if there are no packet losses, TCP congestion window is
+increased at steady pace, but reaction to congestion is stronger: the congestion
+window is reduced to half on detected packet loss, or in some cases initialized
+to one, if there is a retransmission timeout. This kind of algorithms have been
+called Additive Increase, Multiplicative Decrease (AIMD) algorithms.
 
 The loss based AIMD-algorithms are not ideal: they are reactive and take action
 when congestion has already caused problems. The active queue management
