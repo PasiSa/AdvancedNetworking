@@ -312,16 +312,27 @@ to it as congestion event and reduces transmission rate.
 mechanism for network routers to signal that they are congested without having
 to drop packets. Therefore ECN should be used together with one of the active
 queue management algorithms discussed above. ECN uses two bits in the IP header
-and two bits in the TCP header for its signaling.
+and two bits in the TCP header for its signaling, as follows:
+
+- If both ECN bits in IP header are 0, ECN is not enabled for this packet
+- If one of the ECN bits in IP header is set to 1, ECN is available for the packet,
+  but the packet does not (yet) carry a congestion mark
+- If both ECN bits in IP header are 1, a router along the path has indicated
+  congestion ("**congestion experienced (CE)**").
+- TCP header has a **ECN Echo (ECE)** bit, that echoes back the CE information
+  from TCP receiver to TCP sender. Routers do not process this bit.
+- TCP header also has a **Congestion Window Reduced (CWR)** bit to tell the TCP
+  receiver that it has reacted to recent congestion notification
 
 If a sender supports ECN, it marks a **"ECN-capable transport (ECT)"** bit in
 the IP header for all outgoing packets, to indicate the routers on the path that
 ECN is available for this data flow. If this bit is enabled, and router is
-congested, it sets another **"congestion experienced (CE)"** bit in the IP
-header to tell this. If the ECT bit was not set on IP header, the router behaves
-in the traditional way, dropping the IP packet entirely. Because ECN helps to
-avoid packet losses due to congestion, data senders have incentive to use ECN if
-the implementation supports it.
+congested, the router sets a **"congestion experienced (CE)"** bit in the IP
+header to tell this. If ECN was not available, and the ECT bit was not set on
+the IP header, the router behaves in the traditional way, dropping the IP packet
+entirely. Because ECN helps to avoid packet losses due to congestion, data
+senders have incentive to use ECN, if the underlying TCP/IP implementation
+supports it.
 
 Because the congestion window and sending rate is managed at the sending end of
 the transfer, the received needs to echo the congestion information back, when
@@ -341,7 +352,8 @@ we can notice that the basic TCP can deliver only one congestion indication per
 round-trip time. This is also the case with loss-based congestion control.
 
 The below diagram illustrates the packet sequence when congestion is noticed at
-a router (at red "X").
+a router (at red "X"). The black labels refer to ECN bits in the IP header, and
+blue labels refer to ECN bits in the TCP header.
 
 ![ECN operation](/images/cc-ecn.svg){: width="90%" .center-img }
 
