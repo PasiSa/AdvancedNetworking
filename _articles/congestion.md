@@ -40,7 +40,7 @@ at the same time before acknowledgment for the first packet comes in.
 The paper also introduced **congestion avoidance** algorithm, where the
 congestion window is increased by $1/cwnd$ for each acknowledged segment. In
 other words, congestion window is increased by one segment each round-trip time.
-Congestion window is applied when congestion window exceeds the slow-start
+Congestion avoidance is applied when congestion window exceeds the slow-start
 threshold, that indicates the number of unacknowledged segments at the time the
 last loss event occurred.
 
@@ -224,7 +224,7 @@ dominate the queue capacity unfairly.
 
 **FQ-CoDel** (specified in [RFC
 8290](https://datatracker.ietf.org/doc/html/rfc8290)) applies the same logic
-than CoDel, but instead of single queue, it uses separate queue for each flow,
+as CoDel, but instead of a single queue, it uses separate queues for each flow,
 where it applies the CoDel's target queue delay algorithm. FQ-Codel applies the
 **[Deficit Round Robin](https://dl.acm.org/doi/10.1145/217391.217453)**
 scheduler to choose the next flow to process. Because flows do not share the
@@ -338,9 +338,9 @@ Because the congestion window and sending rate is managed at the sending end of
 the transfer, the received needs to echo the congestion information back, when
 it receives a packet with **CE bit** on. This happens inside the TCP header
 (because routers do not need to see this information), using a **"ECN-Echo
-(ECE)"** bit in TCP acknowledgment header. When the TCP receivers this
-acknowledgment, it knows to reduce the sending rate and congestion window, even
-if no packet loss is detected. Because it is important that sender actually
+(ECE)"** bit in TCP acknowledgment header. When the TCP receiver sees this
+acknowledgment, it knows it has to reduce the sending rate and congestion window,
+even if no packet loss is detected. Because it is important that sender actually
 receives the congestion information, but it is possible that also acknowledgment
 packets are lost in the network, the **ECE** bit is applied in all subsequent
 acknowledgments, until the TCP receiver gets a TCP header with "**Congestion
