@@ -31,7 +31,7 @@ The course structure is the following:
 1. [Network programming basics](socket-basics/)
 1. [Server programming and managing concurrency](server-sockets/)
 1. [Congestion control](congestion/)
-1. Evolution of the Web and the QUIC protocol
+1. [Evolution of the Web and the QUIC protocol](web/)
 1. Linux Networking Internals
 1. Software Defined Networking and Programmable Networks
 1. Datacenter networking

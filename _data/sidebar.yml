@@ -25,6 +25,8 @@
       url: /udp/
     - title: 4. Congestion control
       url: /congestion/
+    - title: 5. Evolution of web
+      url: /web/
 
 - title: Code Examples
   url: /examples/
@@ -40,6 +42,8 @@
       url: /assignments/task-srv/
     - title: Data Transfer using UDP
       url: /assignments/task-udp/
+    - title: Experimenting with QUIC
+      url: /assignments/task-quic/
 
 - title: Wireshark
   url: /wireshark/
