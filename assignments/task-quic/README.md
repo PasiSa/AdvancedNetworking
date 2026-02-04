@@ -11,12 +11,12 @@ Mininet network.
 First, we will need to clone _Quiche_ from the repository and build it (not yet
 in Mininet):
 
-    git clone -b 0.23.2 --recurse-submodules https://github.com/cloudflare/quiche.git
+    git clone -b 0.24.5 --recurse-submodules https://github.com/cloudflare/quiche.git
     cd quiche
     cargo build
 
 **Note:** _Quiche_ requires BoringSSL for QUIC’s TLS handshake.
-It is built automatically, but **cmake** must be _[installed](https://command-not-found.com/cmake)_. 
+It is built automatically, but **cmake** must be _[installed](https://command-not-found.com/cmake)_.
 
 For the sake of this experiment, let's create three 100 KB files and fill them
 with arbitrary data, for example, as follows:
