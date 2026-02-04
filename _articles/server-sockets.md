@@ -21,6 +21,8 @@ This section
   another (e.g. socket), and how it can be made more efficient by **avoiding
   copying** in the userspace application.
 
+Related assignment: **[TCP server](../assignments/task-srv/)**
+
 ## Active and passive sockets
 
 When a connection-oriented client socket is opened for communication, it is

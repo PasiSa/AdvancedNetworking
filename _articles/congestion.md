@@ -22,6 +22,8 @@ In this module we
   emerged since the original algorithm, and are widely used in current system
   implementations.
 
+Related assignment: **[Data transfer using UDP](../assignments/task-udp/)**
+
 ## Traditional congestion control
 
 The fundamental principles of congestion control were introduced in the classic
