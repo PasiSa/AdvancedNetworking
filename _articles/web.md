@@ -380,12 +380,12 @@ inside HTTP/3 datagrams.
 ### WebTransport
 
 Websockets are used with HTTP to create socket-like semantics for web
-applications by upgrading an existing HTTP/TCP connection into a socket session
-using a HTTP **CONNECT** method. The WebSocket can be operated by a JavaScript
+applications by upgrading an existing HTTP/TCP connection into a socket session.
+The WebSocket can be operated by a JavaScript
 application in a browser. The TCP connection turns into a WebSocket session and
 subsequent requests needs another connection to be opened.
 
-For HTTP/3 and QUIC, the more generic **WebTransport protocol** was defined. The
+For HTTP/2 and HTTP/3, the more generic **WebTransport protocol** is defined. The
 WebTransport sessions leverage QUIC's prioritized streams to allow multiplexing
 within same QUIC connection with shared connection state (e.g. for congestion
 control, TLS security or connection migration). Because **WebTransport** can use
