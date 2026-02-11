@@ -93,11 +93,11 @@ the useful command line examples:
 
 # Phase 3: Traffic limitations
 
-Let's assume that you are elected as a leader of a great nation. As one of the
-first steps you want to build a firewall that prevents access to content that
-seems unnecessary to your citizens. You provide your UDP tunnel through the
-firewall to give a (limited) access to the rest of the world, but want to
-enforce certain limitations and policies on the traffic.
+Let's assume that you become an authoritarian leader who wants to control the
+Internet access of your citizens. Therefore you will only allow Internet access
+through a UDP tunnel that prevents access to content that seems unnecessary to
+your citizens. On the other hand, you want to emphasize words that seem
+favorable.
 
 Modify your tunnel program in two ways:
 
@@ -108,7 +108,7 @@ Modify your tunnel program in two ways:
    matching should be case insensitive, so for example "Taylor", "TAYLOR" or
    "TaYlOr" are not allowed either.
 
-2. If a packet that arrives from the TUN device contains string "donald", it
+2. If a packet that arrives from the TUN device contains string "elvis", it
    should be duplicated, i.e. forwarded as two similar UDP datagrams, to ensure
    more reliable delivery. Also in this case the string matching should be case
    insensitive.
@@ -119,10 +119,10 @@ following lines at the client. Type the lines one by one, with small pause
 between them (i.e., don't just copy-paste all the lines at once):
 
     hello
-    Donald
+    How Are You?
     moi
     taylor
-    travis
+    Elvis
     TAYLOR
     bye
 
@@ -150,14 +150,13 @@ replaces the tunnel IP address with the host machine IP address. In the common
 case that you are running a virtual machine, you are likely having another NAT
 in your system, translating the virtual machine IP into the actual IP you have
 got for your machine from the Internet. We do not need to worry about that,
-though. The NAT can be enabled as follows:
+though.
 
-    sudo iptables -t nat -A POSTROUTING -s 10.100.0.0/24 -o enp0s5 -j MASQUERADE
+Using the Netfilter rules, set up NAT for outgoing traffic from your host
+namespace to the rest of the world. Think about which hook point you need to use
+and what rules.
 
-You will need to change the network interface name after `-o` option into one
-that your Linux system is using.
-
-Enable IP forwarding in the host namespace:
+You'll need to enable IP forwarding in the host namespace:
 
     sudo sysctl -w net.ipv4.ip_forward=1
 

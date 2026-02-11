@@ -2,6 +2,34 @@
 title: Linux Networking
 ---
 
+This section dives into the Linux kernel network stack, describing how the
+actual TCP/IP protocols are implemented and what kind of optimizations are done
+to support current high-speed networks. There are also some links to the actual
+kernel C code in the material, if you are very deeply interested how things are
+actually done.
+
+If you are interested in more details, without directly diving to code, you may
+be interested in the seminar proceedings of the **"[Seminar of Network Protocols
+in Operating
+Systems](https://aaltodoc.aalto.fi/items/1b226c8e-02b9-4b96-9aa2-d39926de47d7)"**
+we organized here in Aalto University in 2013. It covers various parts of the
+Linux kernel networking stack, and even though the seminar was more than 10
+years ago, the networking implementation in the kernel has not significantly
+changed and most content in the proceedings is still valid.
+
+This section discusses:
+
+- How the network data is organized and buffered in the Linux kernel
+  efficiently, avoiding unnecessary data copying as much as possible
+
+- Enabling high-speed data transfer through offloading to network interface card
+
+- Use of Netfilter framework for packet processing
+
+- Virtualization of networks inside a physical Linux host using network namespaces
+
+Related assignment: "**[IP Tunnel](../assignments/task-tun/)**"
+
 ## Application-kernel interface
 
 When an user space application calls a system function, such as `sendmsg` for
@@ -40,6 +68,48 @@ source code to the key functions are included below.
 
 ![TCP send call in Linux](/images/linux-net.svg)
 
+In addition to the several control fields in the _sk_buff_ structure, an
+important part is the data buffer where packet headers and payload is stored.
+The _sk_buff_ data is preallocated for certain size, and as packets are
+processed, the data buffer is filled or consumed.
+
+The sk_buff is divided in two parts: the **linear data** is stored immediately
+with the sk_buff structure, and has room to store roughly one 1500-byte Ethernet
+packet, including the headers at different layers. In addition, there is **paged
+data** that is a list of typically about 4-kilobyte buffers in separate memory
+pages. There typically can be up to 16 such fragments, meaning that a sk_buff
+can hold a maximum of 64 kilobytes of data. This is more than what typical
+packet in Ethernet carries, but is needed for **generic segmentation offloading
+(GSO)**, which will be discussed in more detail shortly.
+
+The key pointers to manage the linear part of the _sk_buff_ are:
+
+- **head**: points to the beginning of the data buffer, and is never changed
+
+- **end**: points to the end of the data buffer, and is never changed
+
+- **data**: points to the location where the data processed by the current
+  network layer. The implementation adjusts this pointer as processing moves
+  along the protocol stack and new headers are added. To leave room for adding
+  lower layer headers, some space is typically left between data and head in the
+  beginning when new data packet is created.
+
+- **tail**: the current end of the packet data. If more data is appended at the
+  end of the packet, this pointer is moved forward accordingly.
+
+At the end of the sk_buff there is a **shared_info** section that contains
+pointers to the paged fragments, in addition to some parameters related to
+generic segmentation offloading.
+
+![Data buffering](/images/linux-databuf.svg)
+
+### Further reading
+
+- (Very comprehensive) [course
+  notes](https://people.computing.clemson.edu/~westall/853/notes/skbuff.pdf) by
+  prof. James M. Westall on sk_buff management from the Protocol Implementation
+  course in Clemson University.
+
 ## TCP/IP processing
 
 When data is sent to TCP socket,
@@ -57,7 +127,7 @@ On the IP layer the sk_buff is first processed by
 **[ip_queue_xmit](https://github.com/torvalds/linux/blob/7a0892d2836e12cc61b6823f888629a3eb64e268/net/ipv4/ip_output.c#L463)**
 function. First the function chooses the route for the packet, that determines
 the network device packet is passed to. The route may have been set by transport
-layer (for example the SCTP protocol may do this), or it may have been cached
+layer, or it may have been cached
 from earlier similar transmissions. If neither of these is the case, the
 function looks up the correct route from the route table. Then the IP headers
 fields are set, then the sk_buff is passed to device as determined by the route.

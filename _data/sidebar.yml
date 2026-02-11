@@ -27,6 +27,8 @@
       url: /congestion/
     - title: 5. Evolution of web
       url: /web/
+    - title: 6. Linux networking
+      url: /linux-tcpip/
 
 - title: Code Examples
   url: /examples/
@@ -44,6 +46,8 @@
       url: /assignments/task-udp/
     - title: Experimenting with QUIC
       url: /assignments/task-quic/
+    - title: IP Tunnel
+      url: /assignments/task-tun/
 
 - title: Wireshark
   url: /wireshark/
