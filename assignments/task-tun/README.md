@@ -34,9 +34,9 @@ will deploy the tunnel. Set up a network namespace using the provided
 
 ## Phase 2: Plain UDP tunnel
 
-Set up a TUN interface so that the local IP address at the namespace is
-10.100.0.2 and in the host (root) system the IP address is 10.100.0.1. Implement
-a program that reads IP packets from TUN interface and sends them in UDP
+Set up a TUN interface so that the local IP address at the **ns1 namespace is
+10.100.0.2** and in the **host (root) system namespace the IP address is 10.100.0.1**.
+Implement a program that reads IP packets from TUN interface and sends them in UDP
 datagrams that are sent either to 192.168.76.1 (from namespace) or to
 192.168.76.2 (from host). Implement also the opposite direction from UDP
 datagrams into TUN device. If you use Rust, the
@@ -55,8 +55,8 @@ Note that you need to handle two input sources concurrently in your program: the
 UDP socket, and the TUN device end point. You can apply any of the approaches
 introduced earlier with TCP servers for this (I/O multiplexing, threads, etc.).
 
-In your program, print the destination IP address, packet length and the
-protocol identifier for each tunneled IP packet arriving from tunnel UDP socket.
+In your program, print the **destination IP address**, **packet length** and the
+**protocol identifier** for each tunneled IP packet arriving from tunnel UDP socket.
 You can assume that all packets are IPv4, and there are no IPv6 packets. You can
 see the layout and byte offsets of IPv4 protocol fields in
 **[RFC 791](https://datatracker.ietf.org/doc/html/rfc791)**, section 3.1.
@@ -131,7 +131,7 @@ between them (i.e., don't just copy-paste all the lines at once):
 - **(7):** Report the server output, i.e. what arrives over the tunnel, after
   typing the above lines
 
-- **(8):** After this, start netcat server and client using TCP, and repeat the
+- **(8):** After this, start netcat server and client **using TCP**, and repeat the
   above input at client. Report the server output also in this case. Presumably
   the output is different in the two cases. Give you analysis about what happens
   after each line is sent to the socket, and why there is difference to UDP case
