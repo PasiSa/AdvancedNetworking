@@ -103,7 +103,7 @@ The below figure is linked from article
 "[Software-Defined Networking: the New Norm for Network](https://opennetworking.org/sdn-resources/whitepapers/software-defined-networking-the-new-norm-for-networks/)"
 by Open Networking Foundation.
 
-![SDN Arhictecture](http://opennetworking.org/wp-content/uploads/2013/04/sdn-3layers.gif){: width="80%" .center-img }
+![SDN Arhictecture](https://opennetworking.org/wp-content/uploads/2013/04/sdn-3layers.gif){: width="80%" .center-img }
 
 ### Further reading
 
