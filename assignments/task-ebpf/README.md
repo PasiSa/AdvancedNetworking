@@ -5,7 +5,7 @@
 
 We will write a small eBPF/XDP program that performs simple traffic monitoring
 on a few selected protocols on a Linux gateway. To set up the network
-environment, we will use similar `setup.sh` script as in the TUN exercise, to
+environment, we will use **[setup.sh](setup.sh)**, to
 set up a namespace for running client applications. The root namespace does NAT
 and forwards traffic between the namespace and public Internet.
 
@@ -24,8 +24,10 @@ following the following format:
 
     TCP/443=0  UDP/443=0  ICMP=0  dropped:TCP/80=0
 
-There are template C sources in the git repository that you can use as a basis.
-See also the course materials for example that you can apply here.
+There are **[template C
+sources](https://github.com/PasiSa/AdvancedNetworking/tree/main/assignments/task-ebpf)**
+in the git repository that you can use as a basis. See also the course materials
+for example that you can apply here.
 
 Test the following in the ns1 namespace created by setup script, and report
 output after each case. How do the counts in XDP loader output change? How do
