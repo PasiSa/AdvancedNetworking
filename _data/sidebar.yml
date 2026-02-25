@@ -29,6 +29,8 @@
       url: /web/
     - title: 6. Linux networking
       url: /linux-tcpip/
+    - title: 7. Software Defined networking
+      url: /sdn/
 
 - title: Code Examples
   url: /examples/
@@ -48,6 +50,8 @@
       url: /assignments/task-quic/
     - title: IP Tunnel
       url: /assignments/task-tun/
+    - title: eBPF traffic monitoring
+      url: /assignments/task-ebpf/
 
 - title: Wireshark
   url: /wireshark/

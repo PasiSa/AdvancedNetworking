@@ -33,7 +33,7 @@ The course structure is the following:
 1. [Congestion control](congestion/)
 1. [Evolution of the Web and the QUIC protocol](web/)
 1. [Linux Networking Internals](linux-tcpip/)
-1. Software Defined Networking and Programmable Networks
+1. [Software Defined Networking and Programmable Networks](sdn/)
 1. Datacenter networking
 1. Internet of Things and challenged networks
 
