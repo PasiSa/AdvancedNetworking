@@ -36,8 +36,8 @@ int xdp_drop_icmp(struct xdp_md *ctx)
     if ((void *)(eth + 1) > data_end)
         return XDP_PASS;
 
-        // Does the Ethernet frame contain IPv4 packet? If not, let it pass through
-        if (eth->h_proto != bpf_htons(ETH_P_IP))
+    // Does the Ethernet frame contain IPv4 packet? If not, let it pass through
+    if (eth->h_proto != bpf_htons(ETH_P_IP))
         return XDP_PASS;
 
     // Verify that the data section in packet is long enough to contain IP header
