@@ -195,6 +195,9 @@ to demonstrate various applications that can be run in a P4 device.
 - P. Bosshart, et. al.
   [P4: programming protocol-independent packet processors](https://dl.acm.org/doi/10.1145/2656877.2656890).
   _ACM SIGCOMM Computer Communication Review, vol. 44, n. 3, July 2014_.
+- E. F. Kfoury, J. Crichigno, E. Bou-Harb.
+  [An Exhaustive Survey on P4 Programmable Data Plane Switches: Taxonomy, Applications, Challenges, and Future Trends](https://ieeexplore.ieee.org/abstract/document/9447791).
+  _IEEE Access_, vol. 9, June 2021.
 
 ## Extended BPF (eBPF)
 
