@@ -31,6 +31,8 @@
       url: /linux-tcpip/
     - title: 7. Software Defined networking
       url: /sdn/
+    - title: 8. Datacenter networking
+      url: /datacenters/
 
 - title: Code Examples
   url: /examples/
