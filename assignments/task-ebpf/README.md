@@ -16,6 +16,8 @@ Write XDP program that does the following:
 - Count number of ICMP packets (e.g., for ping)
 - Drop TCP packets to destination port 80 (i.e., plaintext HTTP). Count also these packets
 
+The XDP program should be placed at the **root namespace**, to monitor the ingress
+traffic at the veth network interface connected to the namespace.
 You will need to write two C source files. For example, the actual BPF C code
 can be in file `xdp.bpf.c`, and the loader that installs the code source file
 `loader.c`. In addition, the loader should collect packet counts and print them
